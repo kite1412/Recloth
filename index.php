@@ -31,14 +31,25 @@ function formatRupiah(float $amount): string
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($title, ENT_QUOTES, 'UTF-8') ?></title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="public/icons/app-logo.png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'Symphony';
+            src: url('public/fonts/symphony-pro-regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         :root {
             --bg: #f4f4f4;
             --text: #121212;
@@ -82,11 +93,12 @@ function formatRupiah(float $amount): string
         }
 
         .brand {
-            font-family: "Archivo Black", sans-serif;
-            font-size: 26px;
+            font-family: "Symphony", sans-serif;
+            font-size: 30px;
             text-decoration: none;
             color: var(--black);
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
+            margin-top: 5px;
         }
 
         .menu {
@@ -456,10 +468,11 @@ function formatRupiah(float $amount): string
         }
     </style>
 </head>
+
 <body>
     <div class="site-wrap">
         <nav class="navbar">
-            <a class="brand" href="index.php">RECLOTH</a>
+            <a class="brand" href="index.php">Recloth</a>
             <ul class="menu">
                 <li><a href="index.php">Beranda</a></li>
                 <li><a href="src/user/catalog.php">Katalog</a></li>
@@ -471,9 +484,10 @@ function formatRupiah(float $amount): string
             <div class="nav-actions">
                 <a class="cart-icon" href="#" aria-label="Keranjang">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="9.5" cy="19" r="1.2" fill="currentColor"/>
-                        <circle cx="17.5" cy="19" r="1.2" fill="currentColor"/>
+                        <path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6"
+                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="9.5" cy="19" r="1.2" fill="currentColor" />
+                        <circle cx="17.5" cy="19" r="1.2" fill="currentColor" />
                     </svg>
                 </a>
                 <div class="auth-links">
@@ -487,7 +501,9 @@ function formatRupiah(float $amount): string
             <div>
                 <h1>Temukan Baju Thrift Sesuai Gayamu</h1>
                 <p>
-                    Recloth adalah platform e-commerce berbasis web yang menawarkan pakaian thrift berkualitas pilihan. Setiap produk dikurasi dengan teliti, sehingga kamu bisa tampil stylish dengan harga terjangkau dan pengalaman belanja yang nyaman.
+                    Recloth adalah platform e-commerce berbasis web yang menawarkan pakaian thrift berkualitas pilihan.
+                    Setiap produk dikurasi dengan teliti, sehingga kamu bisa tampil stylish dengan harga terjangkau dan
+                    pengalaman belanja yang nyaman.
                 </p>
                 <a class="hero-btn" href="src/user/catalog.php">Belanja Sekarang</a>
 
@@ -516,7 +532,8 @@ function formatRupiah(float $amount): string
                 <?php foreach ($newArrivals as $product): ?>
                     <?php $discount = $product['old'] > 0 ? round((($product['old'] - $product['price']) / $product['old']) * 100) : 0; ?>
                     <article class="card">
-                        <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                        <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <h3><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
                         <div class="price">
                             <span><?= formatRupiah((float) $product['price']) ?></span>
@@ -537,7 +554,8 @@ function formatRupiah(float $amount): string
                 <?php foreach ($topSelling as $product): ?>
                     <?php $discount = $product['old'] > 0 ? round((($product['old'] - $product['price']) / $product['old']) * 100) : 0; ?>
                     <article class="card">
-                        <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                        <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>"
+                            alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
                         <h3><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
                         <div class="price">
                             <span><?= formatRupiah((float) $product['price']) ?></span>
@@ -575,8 +593,9 @@ function formatRupiah(float $amount): string
 
         <footer>
             <section>
-                <a class="brand" href="#">RECLOTH</a>
-                <p style="margin-top: 10px; max-width: 280px;">Recloth menyediakan pakaian thrift pilihan dengan kualitas terjamin dan harga terjangkau.</p>
+                <a class="brand" href="#">Recloth</a>
+                <p style="margin-top: 10px; max-width: 280px;">Recloth menyediakan pakaian thrift pilihan dengan
+                    kualitas terjamin dan harga terjangkau.</p>
             </section>
             <section>
                 <h5>Navigasi Belanja</h5>
@@ -602,4 +621,5 @@ function formatRupiah(float $amount): string
         <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
     </div>
 </body>
+
 </html>

@@ -109,14 +109,25 @@ function e($text): string
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Katalog Produk - Recloth</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="/public/icons/app-logo.png">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'Symphony';
+            src: url('/public/fonts/symphony-pro-regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         :root {
             --bg: #f4f4f4;
             --text: #121212;
@@ -159,11 +170,12 @@ function e($text): string
         }
 
         .brand {
-            font-family: "Archivo Black", sans-serif;
-            font-size: 26px;
+            font-family: "Symphony", sans-serif;
+            font-size: 30px;
             text-decoration: none;
             color: var(--black);
-            letter-spacing: 0.8px;
+            letter-spacing: 1px;
+            margin-top: 5px;
         }
 
         .menu {
@@ -598,159 +610,170 @@ function e($text): string
         }
     </style>
 </head>
+
 <body>
-<div class="site-wrap">
-    <nav class="navbar">
-        <a class="brand" href="../../index.php">RECLOTH</a>
-        <ul class="menu">
-            <li><a href="../../index.php">Beranda</a></li>
-            <li><a href="catalog.php">Katalog</a></li>
-            <li><a href="catalog.php">Kategori</a></li>
-        </ul>
-        <div class="search">
-            <input type="text" value="<?= e($search) ?>" form="filter-form" name="search" placeholder="Cari produk thrift favoritmu...">
-        </div>
-        <div class="nav-actions">
-            <a class="cart-icon" href="cart.php" aria-label="Keranjang">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    <circle cx="9.5" cy="19" r="1.2" fill="currentColor"/>
-                    <circle cx="17.5" cy="19" r="1.2" fill="currentColor"/>
-                </svg>
-            </a>
-            <div class="auth-links">
-                <a class="masuk" href="login.php">Masuk</a>
-                <a class="daftar" href="register.php">Daftar</a>
+    <div class="site-wrap">
+        <nav class="navbar">
+            <a class="brand" href="../../index.php">Recloth</a>
+            <ul class="menu">
+                <li><a href="../../index.php">Beranda</a></li>
+                <li><a href="catalog.php">Katalog</a></li>
+                <li><a href="catalog.php">Kategori</a></li>
+            </ul>
+            <div class="search">
+                <input type="text" value="<?= e($search) ?>" form="filter-form" name="search"
+                    placeholder="Cari produk thrift favoritmu...">
             </div>
-        </div>
-    </nav>
+            <div class="nav-actions">
+                <a class="cart-icon" href="cart.php" aria-label="Keranjang">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6"
+                            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                        <circle cx="9.5" cy="19" r="1.2" fill="currentColor" />
+                        <circle cx="17.5" cy="19" r="1.2" fill="currentColor" />
+                    </svg>
+                </a>
+                <div class="auth-links">
+                    <a class="masuk" href="login.php">Masuk</a>
+                    <a class="daftar" href="register.php">Daftar</a>
+                </div>
+            </div>
+        </nav>
 
-    <p class="breadcrumb"></p>
+        <p class="breadcrumb"></p>
 
-    <div class="catalog-layout">
-        <aside class="sidebar">
-            <h3>Filter Produk</h3>
-            <p>Pilih filter untuk mempersempit hasil.</p>
-            <form id="filter-form" method="GET" action="catalog.php">
-                <fieldset class="filter-group">
-                    <legend>Gender</legend>
-                    <ul class="filter-list">
-                        <li><label><input type="radio" name="gender" value="" <?= $gender === '' ? 'checked' : '' ?>> Semua</label></li>
-                        <li><label><input type="radio" name="gender" value="pria" <?= $gender === 'pria' ? 'checked' : '' ?>> Pria</label></li>
-                        <li><label><input type="radio" name="gender" value="wanita" <?= $gender === 'wanita' ? 'checked' : '' ?>> Wanita</label></li>
-                    </ul>
-                </fieldset>
-
-                <fieldset class="filter-group">
-                    <legend>Harga</legend>
-                    <div class="price-row">
-                        <input type="number" name="min" min="0" step="1000" placeholder="Min" value="<?= e($minRaw) ?>">
-                        <input type="number" name="max" min="0" step="1000" placeholder="Max" value="<?= e($maxRaw) ?>">
-                    </div>
-                </fieldset>
-
-                <fieldset class="filter-group">
-                    <legend>Kategori Produk</legend>
-                    <ul class="filter-list">
-                        <li><label><input type="radio" name="kategori" value="" <?= $kategori === '' ? 'checked' : '' ?>> Semua Kategori</label></li>
-                    </ul>
-                    <?php foreach ($kategoriMap as $group => $items): ?>
-                        <p class="group-label"><?= e($group) ?></p>
+        <div class="catalog-layout">
+            <aside class="sidebar">
+                <h3>Filter Produk</h3>
+                <p>Pilih filter untuk mempersempit hasil.</p>
+                <form id="filter-form" method="GET" action="catalog.php">
+                    <fieldset class="filter-group">
+                        <legend>Gender</legend>
                         <ul class="filter-list">
-                            <?php foreach ($items as $item): ?>
-                                <li>
-                                    <label>
-                                        <input type="radio" name="kategori" value="<?= e($item) ?>" <?= $kategori === $item ? 'checked' : '' ?>>
-                                        <?= e(ucwords($item)) ?>
-                                    </label>
-                                </li>
-                            <?php endforeach; ?>
+                            <li><label><input type="radio" name="gender" value="" <?= $gender === '' ? 'checked' : '' ?>>
+                                    Semua</label></li>
+                            <li><label><input type="radio" name="gender" value="pria" <?= $gender === 'pria' ? 'checked' : '' ?>> Pria</label></li>
+                            <li><label><input type="radio" name="gender" value="wanita" <?= $gender === 'wanita' ? 'checked' : '' ?>> Wanita</label></li>
                         </ul>
-                    <?php endforeach; ?>
-                </fieldset>
+                    </fieldset>
 
-                <fieldset class="filter-group">
-                    <legend>Urutkan</legend>
-                    <select class="sort-select" name="sort">
-                        <option value="terbaru" <?= $sort === 'terbaru' ? 'selected' : '' ?>>Terbaru</option>
-                        <option value="harga_terendah" <?= $sort === 'harga_terendah' ? 'selected' : '' ?>>Harga Terendah</option>
-                        <option value="harga_tertinggi" <?= $sort === 'harga_tertinggi' ? 'selected' : '' ?>>Harga Tertinggi</option>
-                    </select>
-                </fieldset>
+                    <fieldset class="filter-group">
+                        <legend>Harga</legend>
+                        <div class="price-row">
+                            <input type="number" name="min" min="0" step="1000" placeholder="Min"
+                                value="<?= e($minRaw) ?>">
+                            <input type="number" name="max" min="0" step="1000" placeholder="Max"
+                                value="<?= e($maxRaw) ?>">
+                        </div>
+                    </fieldset>
 
-                <button class="apply-btn" type="submit">Terapkan Filter</button>
-                <a class="reset-btn" href="catalog.php">Atur Ulang Filter</a>
-            </form>
-        </aside>
+                    <fieldset class="filter-group">
+                        <legend>Kategori Produk</legend>
+                        <ul class="filter-list">
+                            <li><label><input type="radio" name="kategori" value="" <?= $kategori === '' ? 'checked' : '' ?>> Semua Kategori</label></li>
+                        </ul>
+                        <?php foreach ($kategoriMap as $group => $items): ?>
+                            <p class="group-label"><?= e($group) ?></p>
+                            <ul class="filter-list">
+                                <?php foreach ($items as $item): ?>
+                                    <li>
+                                        <label>
+                                            <input type="radio" name="kategori" value="<?= e($item) ?>" <?= $kategori === $item ? 'checked' : '' ?>>
+                                            <?= e(ucwords($item)) ?>
+                                        </label>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endforeach; ?>
+                    </fieldset>
 
-        <section class="content">
-            <div class="content-head">
-                <h1><?= e($produkText) ?></h1>
-                <div class="info-sort">
-                    <span>Menampilkan <?= count($products) ?> produk</span>
+                    <fieldset class="filter-group">
+                        <legend>Urutkan</legend>
+                        <select class="sort-select" name="sort">
+                            <option value="terbaru" <?= $sort === 'terbaru' ? 'selected' : '' ?>>Terbaru</option>
+                            <option value="harga_terendah" <?= $sort === 'harga_terendah' ? 'selected' : '' ?>>Harga
+                                Terendah</option>
+                            <option value="harga_tertinggi" <?= $sort === 'harga_tertinggi' ? 'selected' : '' ?>>Harga
+                                Tertinggi</option>
+                        </select>
+                    </fieldset>
+
+                    <button class="apply-btn" type="submit">Terapkan Filter</button>
+                    <a class="reset-btn" href="catalog.php">Atur Ulang Filter</a>
+                </form>
+            </aside>
+
+            <section class="content">
+                <div class="content-head">
+                    <h1><?= e($produkText) ?></h1>
+                    <div class="info-sort">
+                        <span>Menampilkan <?= count($products) ?> produk</span>
+                    </div>
                 </div>
-            </div>
 
-            <?php if (empty($products)): ?>
-                <div class="empty">Produk tidak ditemukan. Coba ubah pencarian atau filter.</div>
-            <?php else: ?>
-                <div class="grid">
-                    <?php foreach ($products as $product): ?>
-                        <article class="card">
-                            <div class="img-wrap">
-                                <?php if (!empty($product['image'])): ?>
-                                    <img src="<?= e($product['image']) ?>" alt="<?= e($product['name']) ?>">
-                                <?php else: ?>
-                                    <div class="img-fallback">Gambar belum tersedia</div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="card-body">
-                                <h2 class="product-name"><?= e($product['name']) ?></h2>
-                                <p class="meta">
-                                    <?= e(ucwords((string) ($product['category_name'] ?? '-'))) ?>
-                                    <?php if (!empty($product['gender'])): ?>
-                                        | <?= e(ucfirst((string) $product['gender'])) ?>
+                <?php if (empty($products)): ?>
+                    <div class="empty">Produk tidak ditemukan. Coba ubah pencarian atau filter.</div>
+                <?php else: ?>
+                    <div class="grid">
+                        <?php foreach ($products as $product): ?>
+                            <article class="card">
+                                <div class="img-wrap">
+                                    <?php if (!empty($product['image'])): ?>
+                                        <img src="<?= e($product['image']) ?>" alt="<?= e($product['name']) ?>">
+                                    <?php else: ?>
+                                        <div class="img-fallback">Gambar belum tersedia</div>
                                     <?php endif; ?>
-                                </p>
-                                <p class="price"><?= rupiah($product['price']) ?></p>
-                                <div class="actions">
-                                    <a href="product-detail.php?id=<?= (int) $product['id'] ?>">Detail</a>
-                                    <a class="primary" href="cart.php?action=add&id=<?= (int) $product['id'] ?>">Tambah ke Keranjang</a>
                                 </div>
-                            </div>
-                        </article>
-                    <?php endforeach; ?>
-                </div>
-            <?php endif; ?>
-        </section>
+                                <div class="card-body">
+                                    <h2 class="product-name"><?= e($product['name']) ?></h2>
+                                    <p class="meta">
+                                        <?= e(ucwords((string) ($product['category_name'] ?? '-'))) ?>
+                                        <?php if (!empty($product['gender'])): ?>
+                                            | <?= e(ucfirst((string) $product['gender'])) ?>
+                                        <?php endif; ?>
+                                    </p>
+                                    <p class="price"><?= rupiah($product['price']) ?></p>
+                                    <div class="actions">
+                                        <a href="product-detail.php?id=<?= (int) $product['id'] ?>">Detail</a>
+                                        <a class="primary" href="cart.php?action=add&id=<?= (int) $product['id'] ?>">Tambah ke
+                                            Keranjang</a>
+                                    </div>
+                                </div>
+                            </article>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </section>
+        </div>
+
+        <footer>
+            <section>
+                <a class="brand" href="../../index.php">Recloth</a>
+                <p style="margin-top: 10px; max-width: 280px;">Recloth menyediakan pakaian thrift pilihan dengan
+                    kualitas terjamin dan harga terjangkau.</p>
+            </section>
+            <section>
+                <h5>Navigasi Belanja</h5>
+                <ul>
+                    <li>Katalog Produk</li>
+                    <li>Cari &amp; Filter Kategori</li>
+                    <li>Keranjang Belanja</li>
+                    <li>Checkout Pembayaran</li>
+                </ul>
+            </section>
+            <section>
+                <h5>Akun &amp; Bantuan</h5>
+                <ul>
+                    <li>Registrasi &amp; Login</li>
+                    <li>Konfirmasi Pesanan</li>
+                    <li>Layanan Pelanggan</li>
+                    <li>Kebijakan Privasi</li>
+                </ul>
+            </section>
+        </footer>
+
+        <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
     </div>
-
-    <footer>
-        <section>
-            <a class="brand" href="../../index.php">RECLOTH</a>
-            <p style="margin-top: 10px; max-width: 280px;">Recloth menyediakan pakaian thrift pilihan dengan kualitas terjamin dan harga terjangkau.</p>
-        </section>
-        <section>
-            <h5>Navigasi Belanja</h5>
-            <ul>
-                <li>Katalog Produk</li>
-                <li>Cari &amp; Filter Kategori</li>
-                <li>Keranjang Belanja</li>
-                <li>Checkout Pembayaran</li>
-            </ul>
-        </section>
-        <section>
-            <h5>Akun &amp; Bantuan</h5>
-            <ul>
-                <li>Registrasi &amp; Login</li>
-                <li>Konfirmasi Pesanan</li>
-                <li>Layanan Pelanggan</li>
-                <li>Kebijakan Privasi</li>
-            </ul>
-        </section>
-    </footer>
-
-    <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
-</div>
 </body>
+
 </html>
