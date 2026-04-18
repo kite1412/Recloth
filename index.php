@@ -463,7 +463,7 @@ function formatRupiah(float $amount): string
             <ul class="menu">
                 <li><a href="index.php">Beranda</a></li>
                 <li><a href="src/user/catalog.php">Katalog</a></li>
-                <li><a href="src/user/catalog.php">Kategori</a></li>
+                <li><a href="src/user/category.php">Kategori</a></li>
             </ul>
             <div class="search">
                 <input type="text" placeholder="Cari produk thrift favoritmu...">
