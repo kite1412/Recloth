@@ -1,5 +1,5 @@
 -- Create database
-CREATE DATABASE recloth;
+CREATE DATABASE IF NOT EXISTS recloth;
 
 -- Use database
 USE recloth;
@@ -26,6 +26,8 @@ CREATE TABLE products (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(255),
   description TEXT,
+  gender ENUM('pria', 'wanita') NULL,
+  image VARCHAR(255) NULL,
   price DECIMAL(10,2),
   stock INT,
   category_id INT,
@@ -94,3 +96,19 @@ CREATE TABLE payments (
 -- DEFAULT ADMIN
 INSERT INTO users (name, email, password, role)
 VALUES ('Admin', 'admin@recloth.com', 'admin123', 'admin');
+
+-- DEFAULT CATEGORIES FOR RECLOTH
+INSERT INTO categories (name) VALUES
+('kaos'),
+('kemeja'),
+('hoodie'),
+('sweater'),
+('celana'),
+('rok'),
+('jaket'),
+('cardigan'),
+('blazer'),
+('topi'),
+('sepatu'),
+('ikat pinggang'),
+('aksesoris');
