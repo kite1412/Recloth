@@ -97,27 +97,7 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute([$cartId]);
 $cartItems = $stmt->fetchAll();
 
-if (empty($cartItems)) {
-    // Gunakan mock data jika keranjang kosong
-    $cartItems = [
-        [
-            'product_id' => 991,
-            'quantity' => 1,
-            'name' => 'Jaket Varsity Thrift',
-            'price' => 260000,
-            'image' => 'https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=520&q=80',
-            'category_name' => 'Outer'
-        ],
-        [
-            'product_id' => 992,
-            'quantity' => 2,
-            'name' => 'Kemeja Flanel Oversize',
-            'price' => 145000,
-            'image' => 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=520&q=80',
-            'category_name' => 'Atasan'
-        ]
-    ];
-}
+
 
 $totalItems = 0;
 $totalPrice = 0;
