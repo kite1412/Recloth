@@ -36,6 +36,7 @@ function e($text): string
 ?>
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -44,6 +45,13 @@ function e($text): string
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 	<style>
+    @font-face {
+        font-family: 'Symphony';
+        src: url('/public/fonts/symphony-pro-regular.otf') format('opentype');
+        font-weight: normal;
+        font-style: normal;
+    }
+    
 		:root {
 			--bg: #f4f4f4;
 			--text: #121212;
@@ -86,12 +94,13 @@ function e($text): string
 		}
 
 		.brand {
-			font-family: "Archivo Black", sans-serif;
-			font-size: 26px;
-			text-decoration: none;
-			color: var(--black);
-			letter-spacing: 0.8px;
-		}
+        font-family: "Symphony", sans-serif;
+        font-size: 30px;
+        text-decoration: none;
+        color: var(--black);
+        letter-spacing: 1px;
+        margin-top: 5px;
+    }
 
 		.menu {
 			list-style: none;
@@ -434,6 +443,7 @@ function e($text): string
 		}
 	</style>
 </head>
+
 <body>
 <div class="site-wrap">
 	<nav class="navbar">
@@ -545,4 +555,5 @@ function e($text): string
 	<p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
 </div>
 </body>
+
 </html>
