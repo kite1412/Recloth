@@ -27,12 +27,28 @@ CREATE TABLE products (
   name VARCHAR(255),
   description TEXT,
   gender ENUM('pria', 'wanita') NULL,
+  condition_status VARCHAR(100) NULL,
+  size_label VARCHAR(50) NULL,
+  production_year YEAR NULL,
+  material VARCHAR(120) NULL,
   image VARCHAR(255) NULL,
   price DECIMAL(10,2),
   stock INT,
+  discount_percent INT DEFAULT 0,
   category_id INT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (category_id) REFERENCES categories(id)
+    ON DELETE CASCADE
+);
+
+-- PRODUCT IMAGES (MULTI FOTO)
+CREATE TABLE product_images (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  product_id INT NOT NULL,
+  image_url VARCHAR(255) NOT NULL,
+  sort_order INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (product_id) REFERENCES products(id)
     ON DELETE CASCADE
 );
 
@@ -112,3 +128,82 @@ INSERT INTO categories (name) VALUES
 ('sepatu'),
 ('ikat pinggang'),
 ('aksesoris');
+
+-- DUMMY PRODUCT FOR DETAIL PAGE TEST
+INSERT INTO products (
+  name,
+  description,
+  gender,
+  condition_status,
+  size_label,
+  production_year,
+  material,
+  image,
+  price,
+  stock,
+  discount_percent,
+  category_id
+)
+SELECT
+  'Kemeja Coklat Vintage',
+  'Kemeja warna coklat bernuansa vintage dengan potongan regular fit. Nyaman dipakai harian, cocok untuk gaya kasual maupun semi formal.',
+  'pria',
+  'Sangat Baik',
+  'L',
+  2021,
+  'Katun Twill',
+  'https://dummyimage.com/900x1100/8b5e3c/ffffff&text=Kemeja+Coklat+Utama',
+  149000,
+  6,
+  25,
+  c.id
+FROM categories c
+WHERE c.name = 'kemeja'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM products p
+    WHERE p.name = 'Kemeja Coklat Vintage'
+  )
+LIMIT 1;
+
+INSERT INTO product_images (product_id, image_url, sort_order)
+SELECT
+  p.id,
+  'https://dummyimage.com/900x1100/7a4f31/ffffff&text=Kemeja+Coklat+Depan',
+  1
+FROM products p
+WHERE p.name = 'Kemeja Coklat Vintage'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM product_images pi
+    WHERE pi.product_id = p.id
+      AND pi.sort_order = 1
+  );
+
+INSERT INTO product_images (product_id, image_url, sort_order)
+SELECT
+  p.id,
+  'https://dummyimage.com/900x1100/6b442a/ffffff&text=Kemeja+Coklat+Belakang',
+  2
+FROM products p
+WHERE p.name = 'Kemeja Coklat Vintage'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM product_images pi
+    WHERE pi.product_id = p.id
+      AND pi.sort_order = 2
+  );
+
+INSERT INTO product_images (product_id, image_url, sort_order)
+SELECT
+  p.id,
+  'https://dummyimage.com/900x1100/5a3823/ffffff&text=Kemeja+Coklat+Detail+Bahan',
+  3
+FROM products p
+WHERE p.name = 'Kemeja Coklat Vintage'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM product_images pi
+    WHERE pi.product_id = p.id
+      AND pi.sort_order = 3
+  );

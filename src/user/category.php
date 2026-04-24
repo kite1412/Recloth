@@ -1,5 +1,6 @@
 <?php
 require '../config/database.php';
+require '../config/product_repository.php';
 
 $search = trim($_GET['search'] ?? '');
 $gender = strtolower(trim($_GET['gender'] ?? ''));
@@ -30,76 +31,33 @@ if (!isset($pdo) || !($pdo instanceof PDO)) {
 
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-$columnsStmt = $pdo->query("SHOW COLUMNS FROM products");
-$columns = array_map('strtolower', $columnsStmt->fetchAll(PDO::FETCH_COLUMN));
-
-$hasGender = in_array('gender', $columns, true);
-$hasImage = in_array('image', $columns, true);
-
-$sql = "
-    SELECT
-        p.id,
-        p.name,
-        p.price,
-        p.stock,
-        " . ($hasImage ? 'p.image' : "''") . " AS image,
-        " . ($hasGender ? 'p.gender' : "''") . " AS gender,
-        c.name AS category_name
-    FROM products p
-    LEFT JOIN categories c ON c.id = p.category_id
-";
-
-$conditions = [];
-$params = [];
-
-if ($search !== '') {
-    $conditions[] = 'p.name LIKE :search';
-    $params[':search'] = '%' . $search . '%';
+if ($category !== '' && !in_array($category, $allowedKategori, true)) {
+    $category = '';
 }
 
-if ($hasGender && in_array($gender, ['pria', 'wanita'], true)) {
-    $conditions[] = 'LOWER(p.gender) = :gender';
-    $params[':gender'] = $gender;
-}
-
-if ($category !== '' && in_array($category, $allowedKategori, true)) {
-    $conditions[] = 'LOWER(c.name) = :kategori';
-    $params[':kategori'] = $category;
-}
-
-if ($minPrice !== null && $maxPrice !== null) {
-    $conditions[] = 'p.price BETWEEN :min_price AND :max_price';
-    $params[':min_price'] = min($minPrice, $maxPrice);
-    $params[':max_price'] = max($minPrice, $maxPrice);
-} elseif ($minPrice !== null) {
-    $conditions[] = 'p.price >= :min_price';
-    $params[':min_price'] = $minPrice;
-} elseif ($maxPrice !== null) {
-    $conditions[] = 'p.price <= :max_price';
-    $params[':max_price'] = $maxPrice;
-}
-
-if (!empty($conditions)) {
-    $sql .= ' WHERE ' . implode(' AND ', $conditions);
-}
-
-if ($sort === 'harga_terendah') {
-    $sql .= ' ORDER BY p.price ASC';
-} elseif ($sort === 'harga_tertinggi') {
-    $sql .= ' ORDER BY p.price DESC';
-} else {
-    $sql .= ' ORDER BY p.created_at DESC, p.id DESC';
-}
-
-$stmt = $pdo->prepare($sql);
-$stmt->execute($params);
-$products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$products = recloth_fetch_products($pdo, [
+    'search' => $search,
+    'gender' => $gender,
+    'category' => $category,
+    'min_price' => $minPrice,
+    'max_price' => $maxPrice,
+    'sort' => $sort,
+]);
 
 $produkText = $category !== '' ? ucfirst($category) : 'Semua Produk';
 
 function rupiah($price): string
 {
     return 'Rp' . number_format((float) $price, 0, ',', '.');
+}
+
+function priceBeforeDiscount($price, int $discountPercent = 0): float
+{
+    $discountPercent = max(0, min(90, $discountPercent));
+    if ($discountPercent <= 0) {
+        return $price;
+    }
+    return (float) $price / (1 - ($discountPercent / 100));
 }
 
 function e($text): string
@@ -419,10 +377,25 @@ function e($text): string
             box-shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
         }
 
+        .card-link {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+            padding: 10px;
+        }
+
+        .card-link:focus-visible {
+            outline: 2px solid #111;
+            outline-offset: 2px;
+            border-radius: 12px;
+        }
+
         .img-wrap {
             width: 100%;
-            height: 245px;
+            height: 270px;
             background: #ececec;
+            border-radius: 12px;
+            overflow: hidden;
         }
 
         .img-wrap img {
@@ -445,13 +418,13 @@ function e($text): string
         }
 
         .card-body {
-            padding: 12px;
+            padding: 14px 2px 10px;
         }
 
         .product-name {
-            font-size: 15px;
+            font-size: 18px;
             font-weight: 700;
-            min-height: 40px;
+            min-height: 48px;
         }
 
         .meta {
@@ -460,35 +433,33 @@ function e($text): string
             font-size: 12px;
         }
 
-        .price {
-            margin-top: 7px;
-            font-size: 20px;
-            font-weight: 800;
-        }
-
-        .actions {
+        .price-row {
             margin-top: 10px;
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
 
-        .actions a {
-            flex: 1;
-            text-align: center;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 700;
+        .price {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .old-price {
+            font-size: 17px;
+            color: #8d8d8d;
+            text-decoration: line-through;
+        }
+
+        .discount {
+            padding: 8px 14px;
             border-radius: 999px;
-            padding: 9px;
-            border: 1px solid var(--line);
-            color: #111;
-            background: #fff;
-        }
-
-        .actions a.primary {
-            background: #111;
-            color: #fff;
-            border-color: #111;
+            background: #f3e8e8;
+            color: #bc4b41;
+            font-size: 18px;
+            font-weight: 800;
         }
 
         .empty {
@@ -696,28 +667,34 @@ function e($text): string
             <?php else: ?>
                 <div class="grid">
                     <?php foreach ($products as $product): ?>
+                        <?php $discount = (int) ($product['discount_percent'] ?? 0); ?>
+                        <?php $oldPrice = priceBeforeDiscount((float) $product['price'], $discount); ?>
                         <article class="card">
-                            <div class="img-wrap">
-                                <?php if (!empty($product['image'])): ?>
-                                    <img src="<?= e($product['image']) ?>" alt="<?= e($product['name']) ?>">
-                                <?php else: ?>
-                                    <div class="img-fallback">Gambar belum tersedia</div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="card-body">
-                                <h2 class="product-name"><?= e($product['name']) ?></h2>
-                                <p class="meta">
-                                    <?= e(ucwords((string) ($product['category_name'] ?? '-'))) ?>
-                                    <?php if (!empty($product['gender'])): ?>
-                                        | <?= e(ucfirst((string) $product['gender'])) ?>
+                            <a class="card-link" href="detail_product.php?id=<?= (int) $product['id'] ?>" aria-label="Lihat detail <?= e($product['name']) ?>">
+                                <div class="img-wrap">
+                                    <?php if (!empty($product['image'])): ?>
+                                        <img src="<?= e($product['image']) ?>" alt="<?= e($product['name']) ?>">
+                                    <?php else: ?>
+                                        <div class="img-fallback">Gambar belum tersedia</div>
                                     <?php endif; ?>
-                                </p>
-                                <p class="price"><?= rupiah($product['price']) ?></p>
-                                <div class="actions">
-                                    <a href="product-detail.php?id=<?= (int) $product['id'] ?>">Detail</a>
-                                    <a class="primary" href="cart.php?action=add&id=<?= (int) $product['id'] ?>">Tambah ke Keranjang</a>
                                 </div>
-                            </div>
+                                <div class="card-body">
+                                    <h2 class="product-name"><?= e($product['name']) ?></h2>
+                                    <p class="meta">
+                                        <?= e(ucwords((string) ($product['category_name'] ?? '-'))) ?>
+                                        <?php if (!empty($product['gender'])): ?>
+                                            | <?= e(ucfirst((string) $product['gender'])) ?>
+                                        <?php endif; ?>
+                                    </p>
+                                    <div class="price-row">
+                                        <p class="price"><?= rupiah($product['price']) ?></p>
+                                        <?php if ($discount > 0): ?>
+                                            <p class="old-price"><?= rupiah($oldPrice) ?></p>
+                                            <span class="discount">-<?= (int) $discount ?>%</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </a>
                         </article>
                     <?php endforeach; ?>
                 </div>
