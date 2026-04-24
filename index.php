@@ -1,31 +1,40 @@
 <?php
 $title = "Recloth | Toko Thrift Pilihan";
+require __DIR__ . '/src/config/database.php';
+require __DIR__ . '/src/config/product_repository.php';
 
-$newArrivals = [
-    ["name" => "Kaos Vintage Band", "price" => 120000, "old" => 160000, "rating" => 4.5, "image" => "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=520&q=80"],
-    ["name" => "Kemeja Flanel Oversize", "price" => 145000, "old" => 185000, "rating" => 4.6, "image" => "https://images.unsplash.com/photo-1596755094514-f87e34085b2c?auto=format&fit=crop&w=520&q=80"],
-    ["name" => "Hoodie Streetwear", "price" => 210000, "old" => 250000, "rating" => 4.7, "image" => "https://images.unsplash.com/photo-1527719327859-c6ce80353573?auto=format&fit=crop&w=520&q=80"],
-    ["name" => "Sweater Knit Classic", "price" => 175000, "old" => 0, "rating" => 4.4, "image" => "https://images.unsplash.com/photo-1503341504253-dff4815485f1?auto=format&fit=crop&w=520&q=80"],
-];
+$newArrivals = recloth_fetch_products($pdo, [
+    'sort' => 'terbaru',
+    'limit' => 4,
+]);
 
-$topSelling = [
-    ["name" => "Celana Jeans Relaxed Fit", "price" => 190000, "old" => 230000, "rating" => 4.8, "image" => "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&w=520&q=80"],
-    ["name" => "Rok Denim A-Line", "price" => 135000, "old" => 0, "rating" => 4.2, "image" => "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=520&q=80"],
-    ["name" => "Jaket Varsity Thrift", "price" => 260000, "old" => 300000, "rating" => 4.9, "image" => "https://images.unsplash.com/photo-1551028719-00167b16eac5?auto=format&fit=crop&w=520&q=80"],
-    ["name" => "Cardigan Rajut Soft", "price" => 170000, "old" => 0, "rating" => 4.5, "image" => "https://images.unsplash.com/photo-1612874742237-6526221588e3?auto=format&fit=crop&w=520&q=80"],
-];
-
-function renderStars(float $rating): string
-{
-    $full = (int) floor($rating);
-    $half = ($rating - $full) >= 0.5 ? 1 : 0;
-    $empty = 5 - $full - $half;
-    return str_repeat("★", $full) . ($half ? "☆" : "") . str_repeat("✩", $empty);
-}
+$topSelling = recloth_fetch_products($pdo, [
+    'featured' => true,
+    'limit' => 4,
+]);
 
 function formatRupiah(float $amount): string
 {
     return "Rp" . number_format($amount, 0, ',', '.');
+}
+
+function oldPrice(float $price, int $discount = 0): float
+{
+    $discount = max(0, min(90, $discount));
+    if ($discount <= 0) {
+        return $price;
+    }
+    return $price / (1 - ($discount / 100));
+}
+
+function productImage(string $url): string
+{
+    $url = trim($url);
+    if ($url !== '') {
+        return $url;
+    }
+
+    return 'https://dummyimage.com/600x700/e9e9e9/7a7a7a&text=Foto+Belum+Tersedia';
 }
 ?>
 
@@ -282,6 +291,12 @@ function formatRupiah(float $amount): string
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
+        .card-link {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+        }
+
         .card:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
@@ -476,7 +491,7 @@ function formatRupiah(float $amount): string
             <ul class="menu">
                 <li><a href="index.php">Beranda</a></li>
                 <li><a href="src/user/catalog.php">Katalog</a></li>
-                <li><a href="src/user/catalog.php">Kategori</a></li>
+                <li><a href="src/user/category.php">Kategori</a></li>
             </ul>
             <div class="search">
                 <input type="text" placeholder="Cari produk thrift favoritmu...">
@@ -530,18 +545,20 @@ function formatRupiah(float $amount): string
             <h2>Produk Terbaru</h2>
             <div class="products">
                 <?php foreach ($newArrivals as $product): ?>
-                    <?php $discount = $product['old'] > 0 ? round((($product['old'] - $product['price']) / $product['old']) * 100) : 0; ?>
+                    <?php $discount = (int) ($product['discount_percent'] ?? 0); ?>
+                    <?php $before = oldPrice((float) $product['price'], $discount); ?>
                     <article class="card">
-                        <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>"
-                            alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
-                        <h3><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
-                        <div class="price">
-                            <span><?= formatRupiah((float) $product['price']) ?></span>
-                            <?php if ($product['old'] > 0): ?>
-                                <del><?= formatRupiah((float) $product['old']) ?></del>
-                                <span class="discount">-<?= (int) $discount ?>%</span>
-                            <?php endif; ?>
-                        </div>
+                        <a class="card-link" href="src/user/detail_product.php?id=<?= (int) $product['id'] ?>">
+                            <img src="<?= htmlspecialchars(productImage((string) ($product['image'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                            <h3><?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
+                            <div class="price">
+                                <span><?= formatRupiah((float) $product['price']) ?></span>
+                                <?php if ($discount > 0): ?>
+                                    <del><?= formatRupiah((float) $before) ?></del>
+                                    <span class="discount">-<?= (int) $discount ?>%</span>
+                                <?php endif; ?>
+                            </div>
+                        </a>
                     </article>
                 <?php endforeach; ?>
             </div>
@@ -552,22 +569,24 @@ function formatRupiah(float $amount): string
             <h2>Koleksi Pilihan</h2>
             <div class="products">
                 <?php foreach ($topSelling as $product): ?>
-                    <?php $discount = $product['old'] > 0 ? round((($product['old'] - $product['price']) / $product['old']) * 100) : 0; ?>
+                    <?php $discount = (int) ($product['discount_percent'] ?? 0); ?>
+                    <?php $before = oldPrice((float) $product['price'], $discount); ?>
                     <article class="card">
-                        <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES, 'UTF-8') ?>"
-                            alt="<?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?>">
-                        <h3><?= htmlspecialchars($product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
-                        <div class="price">
-                            <span><?= formatRupiah((float) $product['price']) ?></span>
-                            <?php if ($product['old'] > 0): ?>
-                                <del><?= formatRupiah((float) $product['old']) ?></del>
-                                <span class="discount">-<?= (int) $discount ?>%</span>
-                            <?php endif; ?>
-                        </div>
+                        <a class="card-link" href="src/user/detail_product.php?id=<?= (int) $product['id'] ?>">
+                            <img src="<?= htmlspecialchars(productImage((string) ($product['image'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                            <h3><?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
+                            <div class="price">
+                                <span><?= formatRupiah((float) $product['price']) ?></span>
+                                <?php if ($discount > 0): ?>
+                                    <del><?= formatRupiah((float) $before) ?></del>
+                                    <span class="discount">-<?= (int) $discount ?>%</span>
+                                <?php endif; ?>
+                            </div>
+                        </a>
                     </article>
                 <?php endforeach; ?>
             </div>
-            <a class="view-all" href="src/user/catalog.php">Lihat Semua</a>
+            <a class="view-all" href="src/user/category.php?sort=terbaru">Lihat Semua</a>
         </section>
 
         <section class="reviews">

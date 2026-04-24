@@ -2,56 +2,80 @@
 require '../config/database.php';
 require '../config/product_repository.php';
 
-$search = trim($_GET['search'] ?? '');
-$sort = trim($_GET['sort'] ?? 'terbaru');
-
 if (!isset($pdo) || !($pdo instanceof PDO)) {
 	die('Koneksi database tidak valid. Pastikan ../config/database.php menyediakan variabel $pdo (PDO).');
 }
 
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-$products = recloth_fetch_products($pdo, [
-	'search' => $search,
-	'sort' => $sort,
-]);
+
+$id = filter_input(
+	INPUT_GET,
+	'id',
+	FILTER_VALIDATE_INT,
+	['options' => ['min_range' => 1]]
+);
+
+if ($id === false || $id === null) {
+	header('Location: catalog.php?message=pilih_produk_dari_katalog', true, 302);
+	exit;
+}
+
+$product = recloth_fetch_product_by_id($pdo, (int) $id);
+
+if (!$product) {
+	header('Location: catalog.php?message=produk_tidak_ditemukan', true, 302);
+	exit;
+}
+
+$galleryImages = recloth_fetch_product_images(
+	$pdo,
+	(int) $product['id'],
+	(string) ($product['image'] ?? '')
+);
 
 function rupiah($price): string
 {
 	return 'Rp' . number_format((float) $price, 0, ',', '.');
 }
 
-function priceBeforeDiscount($price, int $discountPercent = 0): float
-{
-	$discountPercent = max(0, min(90, $discountPercent));
-	if ($discountPercent <= 0) {
-		return $price;
-	}
-	return (float) $price / (1 - ($discountPercent / 100));
-}
-
 function e($text): string
 {
 	return htmlspecialchars((string) $text, ENT_QUOTES, 'UTF-8');
 }
+
+function displayValue($value, string $fallback = '-'): string
+{
+	$value = trim((string) $value);
+	return $value === '' ? $fallback : $value;
+}
+
+function oldPriceValue(float $price, int $discount = 0): float
+{
+	$discount = max(0, min(90, $discount));
+	if ($discount <= 0) {
+		return $price;
+	}
+	return $price / (1 - ($discount / 100));
+}
+
+$conditionText = displayValue($product['condition_status'] ?? '', 'Belum diatur');
+$sizeText = displayValue($product['size_label'] ?? '', 'Belum diatur');
+$materialText = displayValue($product['material'] ?? '', 'Belum diatur');
+$yearText = !empty($product['production_year']) ? (string) $product['production_year'] : 'Belum diatur';
+$genderText = !empty($product['gender']) ? ucfirst((string) $product['gender']) : 'Unisex';
+$stockText = (int) ($product['stock'] ?? 0) > 0 ? 'Tersedia' : 'Habis';
+$categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 ?>
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Katalog Produk - Recloth</title>
+	<title>Detail Produk - Recloth</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 	<style>
-    @font-face {
-        font-family: 'Symphony';
-        src: url('/public/fonts/symphony-pro-regular.otf') format('opentype');
-        font-weight: normal;
-        font-style: normal;
-    }
-    
 		:root {
 			--bg: #f4f4f4;
 			--text: #121212;
@@ -94,13 +118,12 @@ function e($text): string
 		}
 
 		.brand {
-        font-family: "Symphony", sans-serif;
-        font-size: 30px;
-        text-decoration: none;
-        color: var(--black);
-        letter-spacing: 1px;
-        margin-top: 5px;
-    }
+			font-family: "Archivo Black", sans-serif;
+			font-size: 26px;
+			text-decoration: none;
+			color: var(--black);
+			letter-spacing: 0.8px;
+		}
 
 		.menu {
 			list-style: none;
@@ -184,103 +207,31 @@ function e($text): string
 			color: var(--muted);
 		}
 
-		.toolbar {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 10px;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 14px;
-			background: #fff;
-			border: 1px solid var(--line);
-			border-radius: 12px;
-			padding: 12px 14px;
-		}
-
-		.toolbar-left h1 {
-			font-size: 30px;
-			line-height: 1;
-			margin-bottom: 4px;
-		}
-
-		.toolbar-left p {
-			color: var(--muted);
-			font-size: 13px;
-		}
-
-		.toolbar-form {
-			display: flex;
-			gap: 8px;
-			align-items: center;
-			flex-wrap: wrap;
-		}
-
-		.toolbar-form input,
-		.toolbar-form select {
-			border: 1px solid var(--line);
-			border-radius: 999px;
-			padding: 9px 12px;
-			font-size: 13px;
-			background: #fff;
-		}
-
-		.toolbar-form button,
-		.toolbar-form a {
-			border-radius: 999px;
-			border: 1px solid var(--black);
-			padding: 9px 12px;
-			font-size: 13px;
-			font-weight: 700;
-			text-decoration: none;
-			cursor: pointer;
-		}
-
-		.toolbar-form button {
-			background: #111;
-			color: #fff;
-		}
-
-		.toolbar-form a {
-			background: #fff;
-			color: #111;
-		}
-
-		.grid {
+		.detail-layout {
 			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 14px;
+			grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+			gap: 18px;
 		}
 
-		.card {
+		.gallery,
+		.summary {
 			background: #fff;
 			border: 1px solid var(--line);
-			border-radius: 14px;
-			overflow: hidden;
-			box-shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+			border-radius: var(--radius);
+			padding: 14px;
 		}
 
-		.card-link {
-			display: block;
-			text-decoration: none;
-			color: inherit;
-			padding: 10px;
-		}
-
-		.card-link:focus-visible {
-			outline: 2px solid #111;
-			outline-offset: 2px;
-			border-radius: 12px;
-		}
-
-		.img-wrap {
+		.hero-image {
 			width: 100%;
-			height: 270px;
+			aspect-ratio: 4 / 5;
 			background: #ececec;
 			border-radius: 12px;
 			overflow: hidden;
+			border: 1px solid var(--line);
+			box-shadow: 0 12px 24px rgba(17, 17, 17, 0.06);
 		}
 
-		.img-wrap img {
+		.hero-image img {
 			width: 100%;
 			height: 100%;
 			object-fit: cover;
@@ -294,39 +245,68 @@ function e($text): string
 			align-items: center;
 			justify-content: center;
 			color: #767676;
-			font-size: 13px;
-			padding: 8px;
+			font-size: 14px;
 			text-align: center;
+			padding: 10px;
 		}
 
-		.card-body {
-			padding: 14px 2px 10px;
+		.thumb-grid {
+			margin-top: 12px;
+			display: grid;
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+			gap: 8px;
+		}
+
+		.thumb {
+			border-radius: 10px;
+			overflow: hidden;
+			background: #f2f2f2;
+			border: 1px solid var(--line);
+			aspect-ratio: 1 / 1;
+		}
+
+		.thumb img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			display: block;
+		}
+
+		.summary-top {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+			margin-bottom: 8px;
+		}
+
+		.chip {
+			border-radius: 999px;
+			border: 1px solid var(--line);
+			background: #fafafa;
+			padding: 6px 10px;
+			font-size: 12px;
+			color: #3f3f3f;
+			font-weight: 600;
 		}
 
 		.product-name {
-			font-size: 18px;
-			font-weight: 700;
-			min-height: 48px;
+			font-size: clamp(24px, 3.4vw, 38px);
+			line-height: 1.1;
+			margin-bottom: 8px;
 		}
 
-		.meta {
-			margin-top: 5px;
-			color: var(--muted);
-			font-size: 12px;
+		.price {
+			font-size: clamp(24px, 2.8vw, 34px);
+			font-weight: 800;
+			margin-bottom: 12px;
 		}
 
 		.price-row {
-			margin-top: 10px;
+			margin-bottom: 12px;
 			display: flex;
 			align-items: center;
 			gap: 10px;
 			flex-wrap: wrap;
-		}
-
-		.price {
-			font-size: 42px;
-			font-weight: 800;
-			line-height: 1;
 		}
 
 		.old-price {
@@ -344,13 +324,67 @@ function e($text): string
 			font-weight: 800;
 		}
 
-		.empty {
-			border: 1px dashed #cfcfcf;
-			border-radius: 14px;
-			padding: 28px 10px;
+		.description {
+			color: #3b3b3b;
+			font-size: 14px;
+			margin-bottom: 14px;
+			white-space: pre-line;
+		}
+
+		.spec-grid {
+			display: grid;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 8px;
+			margin-bottom: 14px;
+		}
+
+		.spec-item {
+			border: 1px solid var(--line);
+			border-radius: 10px;
+			background: #fafafa;
+			padding: 10px;
+		}
+
+		.spec-item h4 {
+			font-size: 11px;
+			text-transform: uppercase;
+			letter-spacing: 0.6px;
+			color: #777;
+			margin-bottom: 4px;
+		}
+
+		.spec-item p {
+			font-size: 14px;
+			font-weight: 700;
+			color: #1d1d1d;
+		}
+
+		.actions {
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+		}
+
+		.btn {
+			flex: 1;
+			min-width: 180px;
 			text-align: center;
-			color: #676767;
+			text-decoration: none;
+			border-radius: 999px;
+			padding: 11px 14px;
+			font-size: 13px;
+			font-weight: 700;
+			border: 1px solid #111;
+		}
+
+		.btn.primary {
+			background: #111;
+			color: #fff;
+		}
+
+		.btn.secondary {
 			background: #fff;
+			color: #111;
 		}
 
 		footer {
@@ -385,8 +419,8 @@ function e($text): string
 		}
 
 		@media (max-width: 1080px) {
-			.grid {
-				grid-template-columns: repeat(2, minmax(0, 1fr));
+			.detail-layout {
+				grid-template-columns: 1fr;
 			}
 
 			footer {
@@ -427,12 +461,11 @@ function e($text): string
 				width: 100%;
 			}
 
-			.toolbar {
-				flex-direction: column;
-				align-items: flex-start;
+			.thumb-grid {
+				grid-template-columns: repeat(3, minmax(0, 1fr));
 			}
 
-			.grid {
+			.spec-grid {
 				grid-template-columns: 1fr;
 			}
 
@@ -443,7 +476,6 @@ function e($text): string
 		}
 	</style>
 </head>
-
 <body>
 <div class="site-wrap">
 	<nav class="navbar">
@@ -454,7 +486,7 @@ function e($text): string
 			<li><a href="category.php">Kategori</a></li>
 		</ul>
 		<div class="search">
-			<input type="text" value="<?= e($search) ?>" form="catalog-form" name="search" placeholder="Cari produk thrift favoritmu...">
+			<input type="text" placeholder="Cari produk thrift favoritmu..." aria-label="Cari produk" disabled>
 		</div>
 		<div class="nav-actions">
 			<a class="cart-icon" href="cart.php" aria-label="Keranjang">
@@ -471,61 +503,73 @@ function e($text): string
 		</div>
 	</nav>
 
-	<p class="breadcrumb">Beranda &gt; Katalog</p>
+	<p class="breadcrumb">Beranda &gt; Katalog &gt; <?= e($product['name']) ?></p>
 
-	<section class="toolbar">
-		<div class="toolbar-left">
-			<h1>Semua Produk</h1>
-			<p>Menampilkan <?= count($products) ?> produk thrift pilihan Recloth.</p>
-		</div>
-		<form id="catalog-form" class="toolbar-form" method="GET" action="catalog.php">
-			<select name="sort">
-				<option value="terbaru" <?= $sort === 'terbaru' ? 'selected' : '' ?>>Terbaru</option>
-				<option value="harga_terendah" <?= $sort === 'harga_terendah' ? 'selected' : '' ?>>Harga Terendah</option>
-				<option value="harga_tertinggi" <?= $sort === 'harga_tertinggi' ? 'selected' : '' ?>>Harga Tertinggi</option>
-			</select>
-			<button type="submit">Terapkan</button>
-			<a href="catalog.php">Reset</a>
-		</form>
+	<section class="detail-layout">
+		<article class="gallery">
+			<div class="hero-image">
+				<?php if (!empty($galleryImages)): ?>
+					<img src="<?= e($galleryImages[0]) ?>" alt="<?= e($product['name']) ?>">
+				<?php else: ?>
+					<div class="img-fallback">Foto produk belum tersedia</div>
+				<?php endif; ?>
+			</div>
+
+			<?php if (count($galleryImages) > 1): ?>
+				<div class="thumb-grid">
+					<?php foreach ($galleryImages as $index => $img): ?>
+						<div class="thumb">
+							<img src="<?= e($img) ?>" alt="<?= e($product['name']) ?> - foto <?= (int) ($index + 1) ?>">
+						</div>
+					<?php endforeach; ?>
+				</div>
+			<?php endif; ?>
+		</article>
+
+		<article class="summary">
+			<div class="summary-top">
+				<span class="chip"><?= e($categoryText) ?></span>
+				<span class="chip"><?= e($genderText) ?></span>
+				<span class="chip"><?= e($stockText) ?></span>
+			</div>
+
+			<h1 class="product-name"><?= e($product['name']) ?></h1>
+			<?php $discount = (int) ($product['discount_percent'] ?? 0); ?>
+			<?php $oldPrice = oldPriceValue((float) $product['price'], $discount); ?>
+			<div class="price-row">
+				<p class="price"><?= rupiah($product['price']) ?></p>
+				<?php if ($discount > 0): ?>
+					<p class="old-price"><?= rupiah($oldPrice) ?></p>
+					<span class="discount">-<?= (int) $discount ?>%</span>
+				<?php endif; ?>
+			</div>
+			<p class="description"><?= e(displayValue($product['description'] ?? '', 'Deskripsi produk belum tersedia.')) ?></p>
+
+			<div class="spec-grid">
+				<div class="spec-item">
+					<h4>Kondisi</h4>
+					<p><?= e($conditionText) ?></p>
+				</div>
+				<div class="spec-item">
+					<h4>Ukuran</h4>
+					<p><?= e($sizeText) ?></p>
+				</div>
+				<div class="spec-item">
+					<h4>Tahun</h4>
+					<p><?= e($yearText) ?></p>
+				</div>
+				<div class="spec-item">
+					<h4>Bahan</h4>
+					<p><?= e($materialText) ?></p>
+				</div>
+			</div>
+
+			<div class="actions">
+				<a class="btn primary" href="cart.php?action=add&id=<?= (int) $product['id'] ?>">Tambah ke Keranjang</a>
+				<a class="btn secondary" href="catalog.php">Kembali ke Katalog</a>
+			</div>
+		</article>
 	</section>
-
-	<?php if (empty($products)): ?>
-		<div class="empty">Produk tidak ditemukan. Coba ubah kata pencarian.</div>
-	<?php else: ?>
-		<section class="grid">
-			<?php foreach ($products as $product): ?>
-				<?php $discount = (int) ($product['discount_percent'] ?? 0); ?>
-				<?php $oldPrice = priceBeforeDiscount((float) $product['price'], $discount); ?>
-				<article class="card">
-					<a class="card-link" href="detail_product.php?id=<?= (int) $product['id'] ?>" aria-label="Lihat detail <?= e($product['name']) ?>">
-						<div class="img-wrap">
-							<?php if (!empty($product['image'])): ?>
-								<img src="<?= e($product['image']) ?>" alt="<?= e($product['name']) ?>">
-							<?php else: ?>
-								<div class="img-fallback">Gambar belum tersedia</div>
-							<?php endif; ?>
-						</div>
-						<div class="card-body">
-							<h2 class="product-name"><?= e($product['name']) ?></h2>
-							<p class="meta">
-								<?= e(ucwords((string) ($product['category_name'] ?? '-'))) ?>
-								<?php if (!empty($product['gender'])): ?>
-									| <?= e(ucfirst((string) $product['gender'])) ?>
-								<?php endif; ?>
-							</p>
-							<div class="price-row">
-								<p class="price"><?= rupiah($product['price']) ?></p>
-								<?php if ($discount > 0): ?>
-									<p class="old-price"><?= rupiah($oldPrice) ?></p>
-									<span class="discount">-<?= (int) $discount ?>%</span>
-								<?php endif; ?>
-							</div>
-						</div>
-					</a>
-				</article>
-			<?php endforeach; ?>
-		</section>
-	<?php endif; ?>
 
 	<footer>
 		<section>
@@ -555,5 +599,4 @@ function e($text): string
 	<p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
 </div>
 </body>
-
 </html>
