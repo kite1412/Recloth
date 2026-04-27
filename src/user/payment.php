@@ -2,108 +2,53 @@
 session_start();
 require '../config/database.php';
 
-// Menentukan user_id sementara untuk simulasi (nanti bias diganti dengan session user login sebenarnya)
+// Menentukan user_id sementara untuk simulasi
 $userId = $_SESSION['user_id'] ?? 1;
-
-// Membuat tabel carts dan cart_items jika belum ada
-$pdo->exec("
-CREATE TABLE IF NOT EXISTS carts (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-CREATE TABLE IF NOT EXISTS cart_items (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    cart_id INT NOT NULL,
-    product_id INT NOT NULL,
-    quantity INT NOT NULL DEFAULT 1,
-    FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
-);
-");
 
 // Mendapatkan cart untuk user saat ini
 $stmt = $pdo->prepare("SELECT id FROM carts WHERE user_id = ?");
 $stmt->execute([$userId]);
 $cart = $stmt->fetch();
 
-if (!$cart) {
-    // Buat cart baru jika user belum memilikinya
-    $stmt = $pdo->prepare("INSERT INTO carts (user_id) VALUES (?)");
-    $stmt->execute([$userId]);
-    $cartId = $pdo->lastInsertId();
-} else {
-    $cartId = $cart['id'];
-}
-
-$action = $_GET['action'] ?? '';
-$productId = (int)($_GET['id'] ?? 0);
-
-// Menangani Aksi Keranjang
-if ($action === 'add' && $productId > 0) {
-    // Cek apakah produk sudah ada di keranjang
-    $stmt = $pdo->prepare("SELECT id, quantity FROM cart_items WHERE cart_id = ? AND product_id = ?");
-    $stmt->execute([$cartId, $productId]);
-    $item = $stmt->fetch();
-    
-    if ($item) {
-        // Update jumlah jika sudah ada
-        $stmt = $pdo->prepare("UPDATE cart_items SET quantity = quantity + 1 WHERE id = ?");
-        $stmt->execute([$item['id']]);
-    } else {
-        // Insert produk baru ke keranjang
-        $stmt = $pdo->prepare("INSERT INTO cart_items (cart_id, product_id, quantity) VALUES (?, ?, 1)");
-        $stmt->execute([$cartId, $productId]);
-    }
-    header("Location: cart.php");
-    exit;
-} elseif ($action === 'remove' && $productId > 0) {
-    $stmt = $pdo->prepare("DELETE FROM cart_items WHERE cart_id = ? AND product_id = ?");
-    $stmt->execute([$cartId, $productId]);
-    header("Location: cart.php");
-    exit;
-} elseif ($action === 'increase' && $productId > 0) {
-     $stmt = $pdo->prepare("UPDATE cart_items SET quantity = quantity + 1 WHERE cart_id = ? AND product_id = ?");
-     $stmt->execute([$cartId, $productId]);
-     header("Location: cart.php");
-     exit;
-} elseif ($action === 'decrease' && $productId > 0) {
-     $stmt = $pdo->prepare("UPDATE cart_items SET quantity = GREATEST(quantity - 1, 1) WHERE cart_id = ? AND product_id = ?");
-     $stmt->execute([$cartId, $productId]);
-     header("Location: cart.php");
-     exit;
-}
-
-// Cek ketersediaan kolom
-$columnsStmt = $pdo->query("SHOW COLUMNS FROM products");
-$columns = array_map('strtolower', $columnsStmt->fetchAll(PDO::FETCH_COLUMN));
-$hasImage = in_array('image', $columns, true);
-
-// Fetch Isi Keranjang dari DB
-$sql = "
-    SELECT 
-        ci.product_id, 
-        ci.quantity, 
-        p.name, 
-        p.price, 
-        " . ($hasImage ? 'p.image' : "''") . " AS image, 
-        c.name AS category_name
-    FROM cart_items ci
-    JOIN products p ON ci.product_id = p.id
-    LEFT JOIN categories c ON p.category_id = c.id
-    WHERE ci.cart_id = ?
-";
-$stmt = $pdo->prepare($sql);
-$stmt->execute([$cartId]);
-$cartItems = $stmt->fetchAll();
-
-
-
+$cartItems = [];
 $totalItems = 0;
 $totalPrice = 0;
-foreach ($cartItems as $item) {
-    $totalItems += $item['quantity'];
-    $totalPrice += $item['quantity'] * $item['price'];
+
+if ($cart) {
+    $cartId = $cart['id'];
+
+    // Cek ketersediaan kolom
+    $columnsStmt = $pdo->query("SHOW COLUMNS FROM products");
+    $columns = array_map('strtolower', $columnsStmt->fetchAll(PDO::FETCH_COLUMN));
+    $hasImage = in_array('image', $columns, true);
+
+    $sql = "
+        SELECT 
+            ci.product_id, 
+            ci.quantity, 
+            p.name, 
+            p.price, 
+            " . ($hasImage ? 'p.image' : "''") . " AS image, 
+            c.name AS category_name
+        FROM cart_items ci
+        JOIN products p ON ci.product_id = p.id
+        LEFT JOIN categories c ON p.category_id = c.id
+        WHERE ci.cart_id = ?
+    ";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$cartId]);
+    $cartItems = $stmt->fetchAll();
+
+    foreach ($cartItems as $item) {
+        $totalItems += $item['quantity'];
+        $totalPrice += $item['quantity'] * $item['price'];
+    }
+}
+
+// Redirect back to cart if it's empty
+if (empty($cartItems)) {
+    header("Location: cart.php");
+    exit;
 }
 
 function rupiah($price): string {
@@ -119,7 +64,7 @@ function e($text): string {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Keranjang Belanja - Recloth</title>
+    <title>Pembayaran - Recloth</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="icon" type="image/png" href="/public/icons/app-logo.png">
@@ -161,7 +106,7 @@ function e($text): string {
             padding: 0 20px 28px;
         }
 
-        /* --- Navbar Styles dari catalog.php --- */
+        /* Navbar Styles */
         .navbar {
             display: flex;
             align-items: center;
@@ -260,15 +205,15 @@ function e($text): string {
             color: var(--black);
         }
 
-        /* --- Cart Layout --- */
-        .cart-layout {
+        /* Payment Layout */
+        .payment-layout {
             display: grid;
-            grid-template-columns: 1fr 350px;
+            grid-template-columns: 1fr 400px;
             gap: 24px;
             align-items: start;
         }
 
-        .cart-box {
+        .payment-box {
             background: #fff;
             border: 1px solid var(--line);
             border-radius: var(--radius);
@@ -276,36 +221,37 @@ function e($text): string {
             box-shadow: 0 8px 18px rgba(17, 17, 17, 0.02);
         }
 
-        .cart-box h2, .cart-summary h3 {
+        .payment-box h2, .payment-summary h3 {
             font-size: 20px;
             margin-bottom: 20px;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--line);
         }
 
-        /* Cart Items */
-        .cart-items-list {
+        /* Order Items */
+        .order-items-list {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 16px;
         }
 
-        .cart-item {
+        .order-item {
             display: flex;
             gap: 16px;
-            padding-bottom: 20px;
+            padding-bottom: 16px;
             border-bottom: 1px solid var(--line);
+            align-items: center;
         }
 
-        .cart-item:last-child {
+        .order-item:last-child {
             padding-bottom: 0;
             border-bottom: 0;
         }
 
         .item-img {
-            width: 110px;
-            height: 130px;
-            border-radius: 10px;
+            width: 70px;
+            height: 90px;
+            border-radius: 8px;
             background: #f1f1f1;
             overflow: hidden;
             flex-shrink: 0;
@@ -323,106 +269,35 @@ function e($text): string {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 11px;
+            font-size: 10px;
             color: #888;
             text-align: center;
-            padding: 10px;
+            padding: 4px;
         }
 
         .item-details {
             flex: 1;
-            display: flex;
-            flex-direction: column;
         }
 
         .item-name {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 700;
         }
 
-        .item-category {
+        .item-meta {
             font-size: 13px;
             color: var(--muted);
             margin-top: 4px;
         }
 
-        .item-price {
+        .item-price-total {
             font-size: 16px;
             font-weight: 800;
-            margin-top: 6px;
+            text-align: right;
         }
 
-        .item-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: auto;
-        }
-
-        .qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 4px 10px;
-        }
-
-        .qty-btn {
-            text-decoration: none;
-            color: #111;
-            font-size: 18px;
-            line-height: 1;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f4f4f4;
-            border-radius: 50%;
-        }
-
-        .qty-btn:hover {
-            background: #e0e0e0;
-        }
-
-        .qty-value {
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .remove-btn {
-            text-decoration: none;
-            color: #d12;
-            font-size: 13px;
-            font-weight: 700;
-        }
-        
-        .remove-btn:hover {
-            text-decoration: underline;
-        }
-
-        .empty-cart {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--muted);
-        }
-        
-        .empty-cart a {
-            display: inline-block;
-            margin-top: 14px;
-            text-decoration: none;
-            font-weight: 700;
-            color: var(--white);
-            background: var(--black);
-            padding: 10px 24px;
-            border-radius: 999px;
-        }
-
-        /* Order Summary */
-        .cart-summary {
+        /* Payment Summary */
+        .payment-summary {
             background: #fff;
             border: 1px solid var(--line);
             border-radius: var(--radius);
@@ -453,7 +328,7 @@ function e($text): string {
             font-weight: 800;
         }
 
-        .checkout-btn {
+        .pay-btn {
             display: block;
             width: 100%;
             background: var(--black);
@@ -465,14 +340,48 @@ function e($text): string {
             font-size: 15px;
             font-weight: 700;
             margin-top: 24px;
+            border: none;
+            cursor: pointer;
             transition: opacity 0.2s;
         }
 
-        .checkout-btn:hover {
+        .pay-btn:hover {
             opacity: 0.9;
         }
 
-        /* --- Footer Styles dari catalog.php --- */
+        .payment-methods {
+            margin-top: 24px;
+        }
+
+        .payment-method {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .payment-method:hover {
+            border-color: #aaa;
+        }
+
+        .payment-method input[type="radio"] {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .payment-method label {
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        /* Footer Styles */
         footer {
             margin-top: 64px;
             display: grid;
@@ -505,10 +414,10 @@ function e($text): string {
         }
 
         @media (max-width: 900px) {
-            .cart-layout {
+            .payment-layout {
                 grid-template-columns: 1fr;
             }
-            .cart-summary {
+            .payment-summary {
                 position: static;
             }
         }
@@ -569,57 +478,52 @@ function e($text): string {
         <p class="breadcrumb">
             <a href="../../index.php">Beranda</a> / 
             <a href="catalog.php">Katalog</a> / 
-            Keranjang
+            <a href="cart.php">Keranjang</a> / 
+            Pembayaran
         </p>
 
-        <div class="cart-layout">
-            <section class="cart-box">
-                <h2>Keranjang Belanja</h2>
+        <div class="payment-layout">
+            <section class="payment-box">
+                <h2>Detail Pesanan</h2>
                 
-                <?php if (empty($cartItems)): ?>
-                    <div class="empty-cart">
-                        <p>Keranjang belanja kamu masih kosong.</p>
-                        <a href="catalog.php">Mulai Belanja</a>
+                <div class="order-items-list">
+                    <?php foreach ($cartItems as $item): ?>
+                        <article class="order-item">
+                            <div class="item-img">
+                                <?php if (!empty($item['image'])): ?>
+                                    <img src="<?= e($item['image']) ?>" alt="<?= e($item['name']) ?>">
+                                <?php else: ?>
+                                    <div class="item-fallback">Tanpa Gambar</div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="item-details">
+                                <h3 class="item-name"><?= e($item['name']) ?></h3>
+                                <p class="item-meta"><?= e(ucwords((string) ($item['category_name'] ?? '-'))) ?> &bull; Qty: <?= e($item['quantity']) ?></p>
+                            </div>
+                            <div class="item-price-total">
+                                <?= rupiah($item['quantity'] * $item['price']) ?>
+                            </div>
+                        </article>
+                    <?php endforeach; ?>
+                </div>
+
+                <div class="payment-methods">
+                    <h3>Metode Pembayaran</h3>
+                    <div class="payment-method">
+                        <input type="radio" id="method-transfer" name="payment_method" value="transfer" checked>
+                        <label for="method-transfer">Transfer Bank (BCA, Mandiri, BNI)</label>
                     </div>
-                <?php else: ?>
-                    <div class="cart-items-list">
-                        <?php foreach ($cartItems as $item): ?>
-                            <article class="cart-item">
-                                <div class="item-img">
-                                    <?php if (!empty($item['image'])): ?>
-                                        <img src="<?= e($item['image']) ?>" alt="<?= e($item['name']) ?>">
-                                    <?php else: ?>
-                                        <div class="item-fallback">Tanpa Gambar</div>
-                                    <?php endif; ?>
-                                </div>
-                                <div class="item-details">
-                                    <h3 class="item-name"><?= e($item['name']) ?></h3>
-                                    <p class="item-category"><?= e(ucwords((string) ($item['category_name'] ?? '-'))) ?></p>
-                                    <p class="item-price"><?= rupiah($item['price']) ?></p>
-                                    
-                                    <div class="item-actions">
-                                        <div class="qty-controls">
-                                            <a href="cart.php?action=decrease&id=<?= $item['product_id'] ?>" class="qty-btn" aria-label="Kurangi">&minus;</a>
-                                            <span class="qty-value"><?= e($item['quantity']) ?></span>
-                                            <a href="cart.php?action=increase&id=<?= $item['product_id'] ?>" class="qty-btn" aria-label="Tambah">&plus;</a>
-                                        </div>
-                                        <a href="cart.php?action=remove&id=<?= $item['product_id'] ?>" class="remove-btn">Hapus</a>
-                                    </div>
-                                </div>
-                            </article>
-                        <?php endforeach; ?>
+                    <div class="payment-method">
+                        <input type="radio" id="method-ewallet" name="payment_method" value="ewallet">
+                        <label for="method-ewallet">E-Wallet (GoPay, OVO, Dana)</label>
                     </div>
-                <?php endif; ?>
+                </div>
             </section>
 
-            <aside class="cart-summary">
-                <h3>Ringkasan Pesanan</h3>
+            <aside class="payment-summary">
+                <h3>Ringkasan Pembayaran</h3>
                 <div class="summary-row">
-                    <span class="label">Total Item</span>
-                    <span><?= e($totalItems) ?> barang</span>
-                </div>
-                <div class="summary-row">
-                    <span class="label">Total Harga</span>
+                    <span class="label">Total Harga (<?= e($totalItems) ?> barang)</span>
                     <span><?= rupiah($totalPrice) ?></span>
                 </div>
                 <div class="summary-row">
@@ -627,14 +531,12 @@ function e($text): string {
                     <span>Gratis</span>
                 </div>
                 <div class="summary-total">
-                    <span>Total Belanja</span>
+                    <span>Total Tagihan</span>
                     <span><?= rupiah($totalPrice) ?></span>
                 </div>
-                <?php if (!empty($cartItems)): ?>
-                    <a href="payment.php" class="checkout-btn">Lanjut ke Pembayaran</a>
-                <?php else: ?>
-                    <a href="catalog.php" class="checkout-btn" style="background:#e0e0e0;color:#888;pointer-events:none;">Lanjut ke Pembayaran</a>
-                <?php endif; ?>
+                <form action="#" method="POST">
+                    <button type="submit" class="pay-btn" onclick="alert('Pembayaran berhasil disimulasikan!'); return false;">Bayar Sekarang</button>
+                </form>
             </aside>
         </div>
 
