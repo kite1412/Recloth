@@ -506,8 +506,8 @@ function productImage(string $url): string
                     </svg>
                 </a>
                 <div class="auth-links">
-                    <a class="masuk" href="#">Masuk</a>
-                    <a class="daftar" href="#">Daftar</a>
+                    <a class="masuk" href="src/user/login.php">Masuk</a>
+                    <a class="daftar" href="src/user/register.php">Daftar</a>
                 </div>
             </div>
         </nav>
