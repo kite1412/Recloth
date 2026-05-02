@@ -495,7 +495,9 @@ function productImage(string $url): string
                 <li><a href="src/user/category.php">Kategori</a></li>
             </ul>
             <div class="search">
-                <input type="text" placeholder="Cari produk thrift favoritmu...">
+                <form action="src/user/category.php" method="GET">
+                    <input type="text" name="search" placeholder="Cari produk thrift favoritmu...">
+                </form>
             </div>
             <div class="nav-actions">
                 <?php if (isset($_SESSION['user_id'])): ?>
