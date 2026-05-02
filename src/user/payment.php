@@ -45,13 +45,14 @@ if ($cart) {
     }
 }
 
-$vaNumber = null;
+$paymentAddress = null;
+$selectedPaymentMethod = null;
 $errorMsg = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
     $paymentMethod = $_POST['payment_method'] ?? '';
     
-    if (in_array($paymentMethod, ['bni', 'bca', 'bri'])) {
+    if (in_array($paymentMethod, ['bni', 'bca', 'bri', 'gopay'])) {
         try {
             $pdo->beginTransaction();
             
@@ -72,15 +73,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
             $serverKey = $env['MIDTRANS_SERVER_KEY'] ?? '';
             
             $payload = [
-                "payment_type" => "bank_transfer",
                 "transaction_details" => [
                     "order_id" => "order-" . $orderId,
                     "gross_amount" => $totalPrice
-                ],
-                "bank_transfer" => [
-                    "bank" => $paymentMethod
                 ]
             ];
+            
+            if ($paymentMethod === 'gopay') {
+                $payload["payment_type"] = "gopay";
+            } else {
+                $payload["payment_type"] = "bank_transfer";
+                $payload["bank_transfer"] = [
+                    "bank" => $paymentMethod
+                ];
+            }
             
             $ch = curl_init('https://api.sandbox.midtrans.com/v2/charge');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -100,12 +106,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
             $responseData = json_decode($response, true);
             
             if (isset($responseData['status_code']) && $responseData['status_code'] == '201') {
-                $vaNumber = $responseData['va_numbers'][0]['va_number'] ?? null;
-                
-                if ($vaNumber) {
-                    $stmt = $pdo->prepare("UPDATE orders SET payment_address = ? WHERE id = ?");
-                    $stmt->execute([$vaNumber, $orderId]);
+                if ($paymentMethod === 'gopay') {
+                    $paymentAddress = $responseData['actions'][0]['url'] ?? null;
+                } else {
+                    $paymentAddress = $responseData['va_numbers'][0]['va_number'] ?? null;
                 }
+                
+                if ($paymentAddress) {
+                    $stmt = $pdo->prepare("UPDATE orders SET payment_address = ? WHERE id = ?");
+                    $stmt->execute([$paymentAddress, $orderId]);
+                }
+                $selectedPaymentMethod = $paymentMethod;
                 
                 // Insert into payments table
                 $stmt = $pdo->prepare("INSERT INTO payments (order_id, method, amount, status) VALUES (?, ?, ?, 'pending')");
@@ -131,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
 }
 
 // Redirect back to cart if it's empty
-if (empty($cartItems) && !$vaNumber) {
+if (empty($cartItems) && !$paymentAddress) {
     header("Location: cart.php");
     exit;
 }
@@ -816,25 +827,44 @@ function e($text): string {
         <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
     </div>
 
-    <?php if ($vaNumber): ?>
+    <?php if ($paymentAddress): ?>
     <div class="modal-overlay" id="vaModal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3>Pembayaran Berhasil Dibuat</h3>
-                <p>Silakan selesaikan pembayaran Anda melalui transfer bank ke nomor Virtual Account di bawah ini.</p>
+                <?php if ($selectedPaymentMethod === 'gopay'): ?>
+                    <p>Silakan scan QR Code di bawah ini menggunakan aplikasi Gojek atau aplikasi e-wallet lainnya.</p>
+                <?php else: ?>
+                    <p>Silakan selesaikan pembayaran Anda melalui transfer bank ke nomor Virtual Account di bawah ini.</p>
+                <?php endif; ?>
             </div>
             
             <div class="va-box">
-                <span class="va-bank"><?= strtoupper(e($_POST['payment_method'] ?? 'Bank')) ?></span>
-                <div class="va-number-container">
-                    <span class="va-number" id="vaNumberText"><?= e($vaNumber) ?></span>
-                    <button type="button" class="copy-btn" onclick="copyVA()" aria-label="Salin">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M8 8V6C8 4.89543 8.89543 4 10 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M14 8H6C4.89543 8 4 8.89543 4 10V18C4 19.1046 4.89543 20 6 20H14C15.1046 20 16 19.1046 16 18V10C16 8.89543 15.1046 8 14 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                    </button>
-                </div>
+                <span class="va-bank"><?= strtoupper(e($selectedPaymentMethod ?? 'Bank')) ?></span>
+                <?php if ($selectedPaymentMethod === 'gopay'): ?>
+                    <div style="display: flex; flex-direction: column; align-items: center; margin: 16px 0;">
+                        <img src="<?= e($paymentAddress) ?>" alt="QR Code GoPay" style="width: 200px; height: 200px; object-fit: contain; margin-bottom: 12px;">
+                        <div class="va-number-container" style="gap: 8px; width: 100%;">
+                            <span class="va-number" id="vaNumberText" style="font-size: 11px; font-weight: 500; font-family: inherit; color: var(--muted); letter-spacing: 0; max-width: 100%; word-break: break-all;"><?= e($paymentAddress) ?></span>
+                            <button type="button" class="copy-btn" onclick="copyVA()" aria-label="Salin">
+                                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M8 8V6C8 4.89543 8.89543 4 10 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 8H6C4.89543 8 4 8.89543 4 10V18C4 19.1046 4.89543 20 6 20H14C15.1046 20 16 19.1046 16 18V10C16 8.89543 15.1046 8 14 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                <?php else: ?>
+                    <div class="va-number-container">
+                        <span class="va-number" id="vaNumberText"><?= e($paymentAddress) ?></span>
+                        <button type="button" class="copy-btn" onclick="copyVA()" aria-label="Salin">
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 8V6C8 4.89543 8.89543 4 10 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 8H6C4.89543 8 4 8.89543 4 10V18C4 19.1046 4.89543 20 6 20H14C15.1046 20 16 19.1046 16 18V10C16 8.89543 15.1046 8 14 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                <?php endif; ?>
                 <div id="copyFeedback" class="copy-feedback">Tersalin!</div>
             </div>
             

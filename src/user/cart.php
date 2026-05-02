@@ -729,22 +729,26 @@ function e($text): string
                                             <?= rupiah($order['total_price']) ?></span>
                                     </div>
                                     <?php if (!empty($order['payment_method'])): ?>
-                                        <div
-                                            style="margin-top: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--line); border-radius: 8px; font-size: 13px;">
+                                        <div style="margin-top: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--line); border-radius: 8px; font-size: 13px;">
                                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                                 <span style="color: var(--muted);">Metode Pembayaran</span>
-                                                <span
-                                                    style="font-weight: 600; text-transform: uppercase;"><?= e($order['payment_method']) ?></span>
+                                                <span style="font-weight: 600; text-transform: uppercase;"><?= e($order['payment_method']) ?></span>
                                             </div>
                                             <?php if (!empty($order['payment_address'])): ?>
-                                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                                    <span style="color: var(--muted);">Virtual Account / Alamat</span>
-                                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                                        <span
-                                                            style="font-weight: 700; color: var(--black); letter-spacing: 0.5px;"><?= e($order['payment_address']) ?></span>
+                                                <?php if ($order['payment_method'] === 'gopay' && $order['status'] === 'pending'): ?>
+                                                    <div style="display: flex; justify-content: center; margin: 12px 0;">
+                                                        <img src="<?= e($order['payment_address']) ?>" alt="QR Code GoPay" style="width: 150px; height: 150px; object-fit: contain;">
+                                                    </div>
+                                                <?php endif; ?>
+                                                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+                                                    <span style="color: var(--muted);"><?= $order['payment_method'] === 'gopay' ? 'Link QR Code' : 'Virtual Account' ?></span>
+                                                    <div style="display: flex; align-items: center; gap: 8px; max-width: 100%;">
+                                                        <span style="font-weight: 700; color: var(--black); letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;" title="<?= e($order['payment_address']) ?>">
+                                                            <?= e($order['payment_address']) ?>
+                                                        </span>
                                                         <button type="button"
                                                             onclick="navigator.clipboard.writeText('<?= e($order['payment_address']) ?>'); const btn = this; const ot = btn.innerText; btn.innerText = 'Tersalin!'; setTimeout(() => btn.innerText = ot, 2000);"
-                                                            style="background: var(--black); color: var(--white); border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-family: inherit; font-weight: 600; cursor: pointer; outline: none;">Salin</button>
+                                                            style="background: var(--black); color: var(--white); border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-family: inherit; font-weight: 600; cursor: pointer; outline: none; flex-shrink: 0;">Salin</button>
                                                     </div>
                                                 </div>
                                             <?php endif; ?>
