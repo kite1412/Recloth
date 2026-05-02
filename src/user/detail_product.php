@@ -1,4 +1,5 @@
 <?php
+session_start();
 require '../config/database.php';
 require '../config/product_repository.php';
 
@@ -497,17 +498,20 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			<input type="text" placeholder="Cari produk thrift favoritmu..." aria-label="Cari produk" disabled>
 		</div>
 		<div class="nav-actions">
-			<a class="cart-icon" href="cart.php" aria-label="Keranjang">
-				<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-					<path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-					<circle cx="9.5" cy="19" r="1.2" fill="currentColor"/>
-					<circle cx="17.5" cy="19" r="1.2" fill="currentColor"/>
-				</svg>
-			</a>
-			<div class="auth-links">
-				<a class="masuk" href="login.php">Masuk</a>
-				<a class="daftar" href="register.php">Daftar</a>
-			</div>
+			<?php if (isset($_SESSION['user_id'])): ?>
+				<a class="cart-icon" href="cart.php" aria-label="Keranjang">
+					<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+						<path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+						<circle cx="9.5" cy="19" r="1.2" fill="currentColor"/>
+						<circle cx="17.5" cy="19" r="1.2" fill="currentColor"/>
+					</svg>
+				</a>
+			<?php else: ?>
+				<div class="auth-links">
+					<a class="masuk" href="login.php">Masuk</a>
+					<a class="daftar" href="register.php">Daftar</a>
+				</div>
+			<?php endif; ?>
 		</div>
 	</nav>
 
