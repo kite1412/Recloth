@@ -353,6 +353,13 @@ function e($text): string {
             margin-top: 24px;
         }
 
+        .payment-group-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin: 16px 0 10px;
+            color: var(--black);
+        }
+
         .payment-method {
             display: flex;
             align-items: center;
@@ -363,6 +370,8 @@ function e($text): string {
             margin-bottom: 12px;
             cursor: pointer;
             transition: border-color 0.2s;
+            font-weight: 600;
+            font-size: 14px;
         }
 
         .payment-method:hover {
@@ -374,11 +383,10 @@ function e($text): string {
             cursor: pointer;
         }
 
-        .payment-method label {
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            flex: 1;
+        .payment-icon {
+            height: 20px;
+            width: auto;
+            object-fit: contain;
         }
 
         /* Footer Styles */
@@ -468,10 +476,6 @@ function e($text): string {
                         <circle cx="17.5" cy="19" r="1.2" fill="currentColor" />
                     </svg>
                 </a>
-                <div class="auth-links">
-                    <a class="masuk" href="login.php">Masuk</a>
-                    <a class="daftar" href="register.php">Daftar</a>
-                </div>
             </div>
         </nav>
 
@@ -509,14 +513,27 @@ function e($text): string {
 
                 <div class="payment-methods">
                     <h3>Metode Pembayaran</h3>
-                    <div class="payment-method">
-                        <input type="radio" id="method-transfer" name="payment_method" value="transfer" checked>
-                        <label for="method-transfer">Transfer Bank (BCA, Mandiri, BNI)</label>
-                    </div>
-                    <div class="payment-method">
-                        <input type="radio" id="method-ewallet" name="payment_method" value="ewallet">
-                        <label for="method-ewallet">E-Wallet (GoPay, OVO, Dana)</label>
-                    </div>
+                    
+                    <h4 class="payment-group-title">Transfer Bank</h4>
+                    <label class="payment-method">
+                        <input type="radio" name="payment_method" value="bni" checked>
+                        <img src="../../public/icons/bni.png" alt="BNI" class="payment-icon">
+                    </label>
+                    <label class="payment-method">
+                        <input type="radio" name="payment_method" value="bca">
+                        <img src="../../public/icons/bca.png" alt="BCA" class="payment-icon">
+                    </label>
+                    <label class="payment-method">
+                        <input type="radio" name="payment_method" value="bri">
+                        <img src="../../public/icons/bri.png" alt="BRI" class="payment-icon">
+                    </label>
+
+                    <h4 class="payment-group-title">E-Wallet</h4>
+                    <label class="payment-method">
+                        <input type="radio" name="payment_method" value="gopay">
+                        <img src="../../public/icons/gopay.png" alt="GoPay" class="payment-icon">
+                        GoPay
+                    </label>
                 </div>
             </section>
 
