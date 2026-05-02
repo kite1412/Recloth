@@ -3,12 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar - RECLOTH</title>
+    <title>Daftar - Recloth</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @font-face {
+            font-family: 'Symphony';
+            src: url('/public/fonts/symphony-pro-regular.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         :root {
             --bg: #F4F4F5; /* zinc-100 */
             --black: #09090B; /* zinc-950 */
@@ -31,7 +38,7 @@
         }
 
         .brand-font {
-            font-family: "Archivo Black", sans-serif;
+            font-family: "Symphony";
         }
 
         /* Hero Image Section */
@@ -147,7 +154,7 @@
             </div>
 
             <div class="relative z-10 mt-auto mb-auto">
-                <h1 class="brand-font text-5xl xl:text-6xl leading-tight mb-6 tracking-tight">RECLOTH</h1>
+                <h1 class="brand-font text-7xl xl:text-8xl leading-tight mb-6 tracking-tight pl-2">Recloth</h1>
                 <p class="text-lg text-white/80 max-w-md font-light leading-relaxed">
                     Recloth adalah platform e-commerce yang menyediakan pakaian thrift berkualitas, dikurasi untuk gaya stylish dengan harga terjangkau.
                 </p>
