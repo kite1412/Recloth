@@ -45,8 +45,93 @@ if ($cart) {
     }
 }
 
+$vaNumber = null;
+$errorMsg = null;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
+    $paymentMethod = $_POST['payment_method'] ?? '';
+    
+    if (in_array($paymentMethod, ['bni', 'bca', 'bri'])) {
+        try {
+            $pdo->beginTransaction();
+            
+            // Create order
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, status, payment_method) VALUES (?, ?, 'pending', ?)");
+            $stmt->execute([$userId, $totalPrice, $paymentMethod]);
+            $orderId = $pdo->lastInsertId();
+            
+            // Create order items
+            $stmtItem = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
+            foreach ($cartItems as $item) {
+                $stmtItem->execute([$orderId, $item['product_id'], $item['quantity'], $item['price']]);
+            }
+            
+            // Hit Midtrans API
+            $envPath = __DIR__ . '/../../.env';
+            $env = file_exists($envPath) ? parse_ini_file($envPath) : [];
+            $serverKey = $env['MIDTRANS_SERVER_KEY'] ?? '';
+            
+            $payload = [
+                "payment_type" => "bank_transfer",
+                "transaction_details" => [
+                    "order_id" => "order-" . $orderId,
+                    "gross_amount" => $totalPrice
+                ],
+                "bank_transfer" => [
+                    "bank" => $paymentMethod
+                ]
+            ];
+            
+            $ch = curl_init('https://api.sandbox.midtrans.com/v2/charge');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Accept: application/json',
+                'Content-Type: application/json',
+                'Authorization: Basic ' . base64_encode($serverKey . ':')
+            ]);
+            
+            $response = curl_exec($ch);
+            if (curl_errno($ch)) {
+                throw new Exception(curl_error($ch));
+            }
+            
+            $responseData = json_decode($response, true);
+            
+            if (isset($responseData['status_code']) && $responseData['status_code'] == '201') {
+                $vaNumber = $responseData['va_numbers'][0]['va_number'] ?? null;
+                
+                if ($vaNumber) {
+                    $stmt = $pdo->prepare("UPDATE orders SET payment_address = ? WHERE id = ?");
+                    $stmt->execute([$vaNumber, $orderId]);
+                }
+                
+                // Insert into payments table
+                $stmt = $pdo->prepare("INSERT INTO payments (order_id, method, amount, status) VALUES (?, ?, ?, 'pending')");
+                $stmt->execute([$orderId, $paymentMethod, $totalPrice]);
+                
+                // Clear cart items
+                $stmt = $pdo->prepare("DELETE FROM cart_items WHERE cart_id = ?");
+                $stmt->execute([$cartId]);
+                
+                $pdo->commit();
+            } else {
+                throw new Exception($responseData['status_message'] ?? 'Payment API Error');
+            }
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $errorMsg = $e->getMessage();
+        }
+    } else {
+        $errorMsg = "Metode pembayaran belum didukung atau pilih metode terlebih dahulu.";
+    }
+}
+
 // Redirect back to cart if it's empty
-if (empty($cartItems)) {
+if (empty($cartItems) && !$vaNumber) {
     header("Location: cart.php");
     exit;
 }
@@ -389,6 +474,148 @@ function e($text): string {
             object-fit: contain;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--white);
+            border-radius: var(--radius);
+            padding: 32px;
+            width: fit-content;
+            min-width: min(420px, 90vw);
+            max-width: 90vw;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .modal-header p {
+            font-size: 14px;
+            color: var(--muted);
+            margin-bottom: 24px;
+        }
+
+        .va-box {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .va-bank {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .va-number-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .va-number {
+            font-size: 24px;
+            font-family: monospace;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--black);
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .copy-btn:hover {
+            color: var(--black);
+            background: #e0e0e0;
+        }
+
+        .copy-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .copy-feedback {
+            font-size: 12px;
+            color: #27ae60;
+            font-weight: 600;
+            margin-top: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            position: absolute;
+            bottom: 6px;
+            left: 0;
+            right: 0;
+        }
+
+        .copy-feedback.show {
+            opacity: 1;
+        }
+
+        .expiry-text {
+            font-size: 13px;
+            color: #e74c3c;
+            margin-bottom: 24px;
+            font-weight: 500;
+        }
+
+        .modal-actions .btn-primary {
+            display: block;
+            width: 100%;
+            background: var(--black);
+            color: var(--white);
+            text-decoration: none;
+            padding: 14px;
+            border-radius: 999px;
+            font-size: 15px;
+            font-weight: 700;
+            transition: opacity 0.2s;
+        }
+
+        .modal-actions .btn-primary:hover {
+            opacity: 0.9;
+        }
+
         /* Footer Styles */
         footer {
             margin-top: 64px;
@@ -486,7 +713,13 @@ function e($text): string {
             Pembayaran
         </p>
 
-        <div class="payment-layout">
+        <?php if ($errorMsg): ?>
+        <div style="background: #fee2e2; color: #dc2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; font-weight: 500;">
+            <?= e($errorMsg) ?>
+        </div>
+        <?php endif; ?>
+
+        <form class="payment-layout" method="POST">
             <section class="payment-box">
                 <h2>Detail Pesanan</h2>
                 
@@ -551,11 +784,9 @@ function e($text): string {
                     <span>Total Tagihan</span>
                     <span><?= rupiah($totalPrice) ?></span>
                 </div>
-                <form action="#" method="POST">
-                    <button type="submit" class="pay-btn" onclick="alert('Pembayaran berhasil disimulasikan!'); return false;">Bayar Sekarang</button>
-                </form>
+                <button type="submit" class="pay-btn">Bayar Sekarang</button>
             </aside>
-        </div>
+        </form>
 
         <footer>
             <section>
@@ -584,5 +815,52 @@ function e($text): string {
 
         <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
     </div>
+
+    <?php if ($vaNumber): ?>
+    <div class="modal-overlay" id="vaModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Pembayaran Berhasil Dibuat</h3>
+                <p>Silakan selesaikan pembayaran Anda melalui transfer bank ke nomor Virtual Account di bawah ini.</p>
+            </div>
+            
+            <div class="va-box">
+                <span class="va-bank"><?= strtoupper(e($_POST['payment_method'] ?? 'Bank')) ?></span>
+                <div class="va-number-container">
+                    <span class="va-number" id="vaNumberText"><?= e($vaNumber) ?></span>
+                    <button type="button" class="copy-btn" onclick="copyVA()" aria-label="Salin">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M8 8V6C8 4.89543 8.89543 4 10 4H18C19.1046 4 20 4.89543 20 6V14C20 15.1046 19.1046 16 18 16H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 8H6C4.89543 8 4 8.89543 4 10V18C4 19.1046 4.89543 20 6 20H14C15.1046 20 16 19.1046 16 18V10C16 8.89543 15.1046 8 14 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
+                <div id="copyFeedback" class="copy-feedback">Tersalin!</div>
+            </div>
+            
+            <p class="expiry-text">Selesaikan sebelum: <?= e(date('d M Y, H:i', strtotime('+1 day'))) ?></p>
+            
+            <div class="modal-actions">
+                <a href="../../index.php" class="btn-primary">Kembali ke Beranda</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function copyVA() {
+            const vaText = document.getElementById('vaNumberText').innerText;
+            navigator.clipboard.writeText(vaText).then(() => {
+                const feedback = document.getElementById('copyFeedback');
+                feedback.classList.add('show');
+                setTimeout(() => {
+                    feedback.classList.remove('show');
+                }, 2000);
+            });
+        }
+        
+        // Prevent body scroll when modal is open
+        document.body.style.overflow = 'hidden';
+    </script>
+    <?php endif; ?>
 </body>
 </html>

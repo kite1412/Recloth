@@ -72,6 +72,16 @@ if ($action === 'add' && $productId > 0) {
      $stmt->execute([$cartId, $productId]);
      header("Location: cart.php");
      exit;
+} elseif ($action === 'cancel_order' && isset($_GET['order_id'])) {
+    $orderIdToCancel = (int)$_GET['order_id'];
+    $stmt = $pdo->prepare("SELECT id FROM orders WHERE id = ? AND user_id = ? AND status = 'pending'");
+    $stmt->execute([$orderIdToCancel, $userId]);
+    if ($stmt->fetch()) {
+        $stmtDel = $pdo->prepare("DELETE FROM orders WHERE id = ?");
+        $stmtDel->execute([$orderIdToCancel]);
+    }
+    header("Location: cart.php");
+    exit;
 }
 
 // Cek ketersediaan kolom
@@ -97,7 +107,28 @@ $stmt = $pdo->prepare($sql);
 $stmt->execute([$cartId]);
 $cartItems = $stmt->fetchAll();
 
+// Fetch Pesanan Saya (User Orders)
+$stmt = $pdo->prepare("
+    SELECT id, total_price, status, created_at, payment_method, payment_address 
+    FROM orders 
+    WHERE user_id = ? 
+    ORDER BY created_at DESC
+");
+$stmt->execute([$userId]);
+$userOrdersRaw = $stmt->fetchAll();
 
+$userOrders = [];
+$stmtItems = $pdo->prepare("
+    SELECT oi.quantity, oi.price, p.name, " . ($hasImage ? 'p.image' : "''") . " AS image 
+    FROM order_items oi
+    JOIN products p ON oi.product_id = p.id
+    WHERE oi.order_id = ?
+");
+foreach ($userOrdersRaw as $order) {
+    $stmtItems->execute([$order['id']]);
+    $order['items'] = $stmtItems->fetchAll();
+    $userOrders[] = $order;
+}
 
 $totalItems = 0;
 $totalPrice = 0;
@@ -576,10 +607,74 @@ function e($text): string {
         </p>
 
         <div class="cart-layout">
-            <section class="cart-box">
-                <h2>Keranjang Belanja</h2>
-                
-                <?php if (empty($cartItems)): ?>
+            <div class="main-column">
+                <?php if (!empty($userOrders)): ?>
+                <section class="cart-box" style="margin-bottom: 24px;">
+                    <h2>Pesanan Saya</h2>
+                    <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
+                        <?php foreach ($userOrders as $order): ?>
+                            <div class="order-card" style="border: 1px solid var(--line); border-radius: 12px; padding: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
+                                    <span style="font-size: 14px; font-weight: 700;">Order #<?= $order['id'] ?></span>
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span style="font-size: 12px; padding: 4px 10px; background: #f0f0f0; border-radius: 999px; font-weight: 600; text-transform: uppercase;">
+                                            <?= e($order['status']) ?>
+                                        </span>
+                                        <?php if ($order['status'] === 'pending'): ?>
+                                            <a href="cart.php?action=cancel_order&order_id=<?= $order['id'] ?>" onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');" style="text-decoration: none; font-size: 12px; padding: 4px 10px; background: #ffebee; color: #d32f2f; border-radius: 999px; font-weight: 600;">Batalkan</a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                                
+                                <div class="order-items-preview" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                                    <?php foreach ($order['items'] as $oi): ?>
+                                        <div style="display: flex; gap: 12px; align-items: center;">
+                                            <div style="width: 50px; height: 60px; border-radius: 6px; background: #f1f1f1; overflow: hidden; flex-shrink: 0;">
+                                                <?php if (!empty($oi['image'])): ?>
+                                                    <img src="<?= e($oi['image']) ?>" alt="<?= e($oi['name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
+                                                <?php else: ?>
+                                                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #888;">Tanpa Gambar</div>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div style="flex: 1;">
+                                                <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 4px;"><?= e($oi['name']) ?></h4>
+                                                <p style="font-size: 12px; color: var(--muted);"><?= e($oi['quantity']) ?> x <?= rupiah($oi['price']) ?></p>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+
+                                <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 12px;">
+                                    <span><?= date('d M Y, H:i', strtotime($order['created_at'])) ?></span>
+                                    <span style="font-weight: 700; color: var(--black);">Total: <?= rupiah($order['total_price']) ?></span>
+                                </div>
+                                <?php if (!empty($order['payment_method'])): ?>
+                                <div style="margin-top: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--line); border-radius: 8px; font-size: 13px;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                        <span style="color: var(--muted);">Metode Pembayaran</span>
+                                        <span style="font-weight: 600; text-transform: uppercase;"><?= e($order['payment_method']) ?></span>
+                                    </div>
+                                    <?php if (!empty($order['payment_address'])): ?>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span style="color: var(--muted);">Virtual Account / Alamat</span>
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-weight: 700; color: var(--black); letter-spacing: 0.5px;"><?= e($order['payment_address']) ?></span>
+                                            <button type="button" onclick="navigator.clipboard.writeText('<?= e($order['payment_address']) ?>'); const btn = this; const ot = btn.innerText; btn.innerText = 'Tersalin!'; setTimeout(() => btn.innerText = ot, 2000);" style="background: var(--black); color: var(--white); border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-family: inherit; font-weight: 600; cursor: pointer; outline: none;">Salin</button>
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
+                <?php endif; ?>
+
+                <section class="cart-box">
+                    <h2>Keranjang Belanja</h2>
+                    
+                    <?php if (empty($cartItems)): ?>
                     <div class="empty-cart">
                         <p>Keranjang belanja kamu masih kosong.</p>
                         <a href="catalog.php">Mulai Belanja</a>
@@ -613,7 +708,8 @@ function e($text): string {
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
-            </section>
+                </section>
+            </div>
 
             <aside class="cart-summary">
                 <h3>Ringkasan Pesanan</h3>

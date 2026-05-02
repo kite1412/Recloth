@@ -79,6 +79,8 @@ CREATE TABLE orders (
   user_id INT,
   total_price DECIMAL(10,2),
   status VARCHAR(50),
+  payment_method VARCHAR(100),
+  payment_address VARCHAR(1000),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE
