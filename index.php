@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+    header('Location: src/admin/dashboard.php');
+    exit;
+}
 $title = "Recloth | Toko Thrift Pilihan";
 require __DIR__ . '/src/config/database.php';
 require __DIR__ . '/src/config/product_repository.php';
