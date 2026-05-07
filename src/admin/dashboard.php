@@ -1,9 +1,5 @@
 <?php
-$conn = new mysqli("localhost", "root", "", "recloth");
-
-if ($conn->connect_error) {
-    die("Koneksi gagal: " . $conn->connect_error);
-}
+require_once __DIR__ . '/../config/database.php';
 ?>
 
 <!DOCTYPE html>

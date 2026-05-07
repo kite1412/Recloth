@@ -234,33 +234,74 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			padding: 14px;
 		}
 
-		.hero-image {
+		.hero-wrapper {
+			position: relative;
 			width: 100%;
 			aspect-ratio: 4 / 5;
-			background: #ececec;
 			border-radius: 12px;
 			overflow: hidden;
 			border: 1px solid var(--line);
-			box-shadow: 0 12px 24px rgba(17, 17, 17, 0.06);
+			box-shadow: 0 12px 24px rgba(17,17,17,.06);
+			background: #ececec;
+			cursor: pointer;
 		}
 
-		.hero-image img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			display: block;
+		.hero-track {
+			display: flex;
+			width: 100%; height: 100%;
+			transition: transform .35s cubic-bezier(.4,0,.2,1);
+			will-change: transform;
+		}
+
+		.hero-slide {
+			min-width: 100%; height: 100%;
+		}
+
+		.hero-slide img {
+			width: 100%; height: 100%;
+			object-fit: cover; display: block;
+		}
+
+		.hero-arrow {
+			position: absolute; top: 50%; transform: translateY(-50%);
+			width: 38px; height: 38px;
+			border-radius: 50%; border: none;
+			background: rgba(255,255,255,.85);
+			box-shadow: 0 2px 8px rgba(0,0,0,.12);
+			cursor: pointer; z-index: 2;
+			display: flex; align-items: center; justify-content: center;
+			transition: opacity .2s, background .2s;
+			opacity: 0;
+		}
+
+		.hero-wrapper:hover .hero-arrow { opacity: 1; }
+		.hero-arrow:hover { background: #fff; }
+		.hero-arrow.left { left: 10px; }
+		.hero-arrow.right { right: 10px; }
+		.hero-arrow svg { width: 18px; height: 18px; stroke: #222; stroke-width: 2.2; fill: none; }
+
+		.hero-dots {
+			position: absolute; bottom: 12px; left: 50%;
+			transform: translateX(-50%);
+			display: flex; gap: 6px; z-index: 2;
+		}
+
+		.hero-dot {
+			width: 8px; height: 8px; border-radius: 50%;
+			background: rgba(255,255,255,.5); border: none;
+			cursor: pointer; transition: background .2s, transform .2s;
+			padding: 0;
+		}
+
+		.hero-dot.active {
+			background: #fff; transform: scale(1.3);
+			box-shadow: 0 0 4px rgba(0,0,0,.25);
 		}
 
 		.img-fallback {
-			width: 100%;
-			height: 100%;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			color: #767676;
-			font-size: 14px;
-			text-align: center;
-			padding: 10px;
+			width: 100%; height: 100%;
+			display: flex; align-items: center; justify-content: center;
+			color: #767676; font-size: 14px; text-align: center; padding: 10px;
 		}
 
 		.thumb-grid {
@@ -271,18 +312,66 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 		}
 
 		.thumb {
-			border-radius: 10px;
-			overflow: hidden;
+			border-radius: 10px; overflow: hidden;
 			background: #f2f2f2;
-			border: 1px solid var(--line);
-			aspect-ratio: 1 / 1;
+			border: 2px solid transparent;
+			aspect-ratio: 1/1;
+			cursor: pointer;
+			transition: border-color .2s, opacity .2s;
+			opacity: .6;
 		}
 
+		.thumb.active { border-color: #111; opacity: 1; }
+		.thumb:hover { opacity: 1; }
+
 		.thumb img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-			display: block;
+			width: 100%; height: 100%;
+			object-fit: cover; display: block;
+		}
+
+		/* Lightbox */
+		.lightbox-overlay {
+			position: fixed; inset: 0;
+			background: rgba(0,0,0,.88);
+			z-index: 9999;
+			display: none; align-items: center; justify-content: center;
+		}
+
+		.lightbox-overlay.show { display: flex; }
+
+		.lightbox-close {
+			position: absolute; top: 18px; right: 22px;
+			background: rgba(255,255,255,.15); border: none;
+			color: #fff; font-size: 28px; width: 44px; height: 44px;
+			border-radius: 50%; cursor: pointer;
+			display: flex; align-items: center; justify-content: center;
+			transition: background .2s;
+		}
+
+		.lightbox-close:hover { background: rgba(255,255,255,.3); }
+
+		.lightbox-img {
+			max-width: 90vw; max-height: 88vh;
+			object-fit: contain; border-radius: 8px;
+			user-select: none;
+		}
+
+		.lb-arrow {
+			position: absolute; top: 50%; transform: translateY(-50%);
+			width: 48px; height: 48px; border-radius: 50%; border: none;
+			background: rgba(255,255,255,.15); cursor: pointer;
+			display: flex; align-items: center; justify-content: center;
+			transition: background .2s;
+		}
+
+		.lb-arrow:hover { background: rgba(255,255,255,.3); }
+		.lb-arrow.left { left: 16px; }
+		.lb-arrow.right { right: 16px; }
+		.lb-arrow svg { width: 22px; height: 22px; stroke: #fff; stroke-width: 2.4; fill: none; }
+
+		.lb-counter {
+			position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+			color: rgba(255,255,255,.7); font-size: 13px; font-weight: 600;
 		}
 
 		.summary-top {
@@ -436,6 +525,8 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 				grid-template-columns: 1fr;
 			}
 
+			.hero-arrow { opacity: .7; }
+
 			footer {
 				grid-template-columns: repeat(2, minmax(0, 1fr));
 			}
@@ -528,22 +619,36 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 
 	<section class="detail-layout">
 		<article class="gallery">
-			<div class="hero-image">
-				<?php if (!empty($galleryImages)): ?>
-					<img src="<?= e($galleryImages[0]) ?>" alt="<?= e($product['name']) ?>">
-				<?php else: ?>
-					<div class="img-fallback">Foto produk belum tersedia</div>
+			<?php if (!empty($galleryImages)): ?>
+			<div class="hero-wrapper" id="heroWrapper">
+				<div class="hero-track" id="heroTrack">
+					<?php foreach ($galleryImages as $i => $img): ?>
+						<div class="hero-slide"><img src="<?= e($img) ?>" alt="<?= e($product['name']) ?> - foto <?= $i+1 ?>" draggable="false"></div>
+					<?php endforeach; ?>
+				</div>
+
+				<?php if (count($galleryImages) > 1): ?>
+				<button class="hero-arrow left" id="arrowLeft" aria-label="Sebelumnya"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+				<button class="hero-arrow right" id="arrowRight" aria-label="Selanjutnya"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+				<div class="hero-dots" id="heroDots">
+					<?php foreach ($galleryImages as $i => $img): ?>
+						<button class="hero-dot<?= $i===0?' active':'' ?>" data-idx="<?= $i ?>" aria-label="Gambar <?= $i+1 ?>"></button>
+					<?php endforeach; ?>
+				</div>
 				<?php endif; ?>
 			</div>
 
 			<?php if (count($galleryImages) > 1): ?>
-				<div class="thumb-grid">
+				<div class="thumb-grid" id="thumbGrid">
 					<?php foreach ($galleryImages as $index => $img): ?>
-						<div class="thumb">
+						<div class="thumb<?= $index===0?' active':'' ?>" data-idx="<?= $index ?>">
 							<img src="<?= e($img) ?>" alt="<?= e($product['name']) ?> - foto <?= (int) ($index + 1) ?>">
 						</div>
 					<?php endforeach; ?>
 				</div>
+			<?php endif; ?>
+			<?php else: ?>
+			<div class="hero-wrapper"><div class="img-fallback">Foto produk belum tersedia</div></div>
 			<?php endif; ?>
 		</article>
 
@@ -623,5 +728,140 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 
 	<p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
 </div>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox">
+	<button class="lightbox-close" id="lbClose" aria-label="Tutup">&times;</button>
+	<button class="lb-arrow left" id="lbLeft" aria-label="Sebelumnya"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+	<img class="lightbox-img" id="lbImg" src="" alt="" draggable="false">
+	<button class="lb-arrow right" id="lbRight" aria-label="Selanjutnya"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></button>
+	<span class="lb-counter" id="lbCounter"></span>
+</div>
+
+<script>
+(function() {
+	const track = document.getElementById('heroTrack');
+	const wrapper = document.getElementById('heroWrapper');
+	if (!track || !wrapper) return;
+
+	const slides = track.querySelectorAll('.hero-slide');
+	const total = slides.length;
+	if (total === 0) return;
+
+	let current = 0;
+	const dots = document.querySelectorAll('#heroDots .hero-dot');
+	const thumbs = document.querySelectorAll('#thumbGrid .thumb');
+
+	function goTo(idx, smooth) {
+		idx = ((idx % total) + total) % total;
+		current = idx;
+		track.style.transition = smooth !== false ? 'transform .35s cubic-bezier(.4,0,.2,1)' : 'none';
+		track.style.transform = 'translateX(-' + (idx * 100) + '%)';
+		dots.forEach(function(d, i) { d.classList.toggle('active', i === idx); });
+		thumbs.forEach(function(t, i) { t.classList.toggle('active', i === idx); });
+	}
+
+	// Arrow buttons
+	var al = document.getElementById('arrowLeft');
+	var ar = document.getElementById('arrowRight');
+	if (al) al.addEventListener('click', function(e) { e.stopPropagation(); goTo(current - 1); });
+	if (ar) ar.addEventListener('click', function(e) { e.stopPropagation(); goTo(current + 1); });
+
+	// Dots
+	dots.forEach(function(d) {
+		d.addEventListener('click', function(e) {
+			e.stopPropagation();
+			goTo(parseInt(d.dataset.idx));
+		});
+	});
+
+	// Thumbnails
+	thumbs.forEach(function(t) {
+		t.addEventListener('click', function() { goTo(parseInt(t.dataset.idx)); });
+	});
+
+	// Touch / swipe
+	var sx = 0, sy = 0, dx = 0, swiping = false;
+	wrapper.addEventListener('touchstart', function(e) {
+		sx = e.touches[0].clientX;
+		sy = e.touches[0].clientY;
+		dx = 0; swiping = true;
+	}, { passive: true });
+
+	wrapper.addEventListener('touchmove', function(e) {
+		if (!swiping) return;
+		dx = e.touches[0].clientX - sx;
+		var dy = Math.abs(e.touches[0].clientY - sy);
+		if (dy > Math.abs(dx)) { swiping = false; return; }
+		if (Math.abs(dx) > 10) e.preventDefault();
+		var pct = -(current * 100) + (dx / wrapper.offsetWidth * 100);
+		track.style.transition = 'none';
+		track.style.transform = 'translateX(' + pct + '%)';
+	}, { passive: false });
+
+	wrapper.addEventListener('touchend', function() {
+		if (!swiping) { goTo(current); return; }
+		swiping = false;
+		if (dx < -40) goTo(current + 1);
+		else if (dx > 40) goTo(current - 1);
+		else goTo(current);
+	});
+
+	// Keyboard
+	document.addEventListener('keydown', function(e) {
+		if (e.key === 'ArrowLeft') goTo(current - 1);
+		else if (e.key === 'ArrowRight') goTo(current + 1);
+	});
+
+	// Lightbox
+	var lb = document.getElementById('lightbox');
+	var lbImg = document.getElementById('lbImg');
+	var lbCounter = document.getElementById('lbCounter');
+	var images = [];
+	slides.forEach(function(s) { images.push(s.querySelector('img').src); });
+
+	function openLightbox(idx) {
+		idx = ((idx % total) + total) % total;
+		current = idx;
+		lbImg.src = images[idx];
+		lbCounter.textContent = (idx + 1) + ' / ' + total;
+		lb.classList.add('show');
+		document.body.style.overflow = 'hidden';
+		goTo(idx, false);
+	}
+
+	function closeLightbox() {
+		lb.classList.remove('show');
+		document.body.style.overflow = '';
+	}
+
+	wrapper.addEventListener('click', function() { openLightbox(current); });
+	document.getElementById('lbClose').addEventListener('click', closeLightbox);
+	lb.addEventListener('click', function(e) { if (e.target === lb) closeLightbox(); });
+
+	document.getElementById('lbLeft').addEventListener('click', function(e) {
+		e.stopPropagation(); openLightbox(current - 1);
+	});
+	document.getElementById('lbRight').addEventListener('click', function(e) {
+		e.stopPropagation(); openLightbox(current + 1);
+	});
+
+	document.addEventListener('keydown', function(e) {
+		if (!lb.classList.contains('show')) return;
+		if (e.key === 'Escape') closeLightbox();
+		if (e.key === 'ArrowLeft') openLightbox(current - 1);
+		if (e.key === 'ArrowRight') openLightbox(current + 1);
+	});
+
+	// Lightbox swipe
+	var lsx = 0, ldx = 0;
+	lbImg.addEventListener('touchstart', function(e) { lsx = e.touches[0].clientX; ldx = 0; }, { passive: true });
+	lbImg.addEventListener('touchmove', function(e) { ldx = e.touches[0].clientX - lsx; }, { passive: true });
+	lbImg.addEventListener('touchend', function() {
+		if (ldx < -50) openLightbox(current + 1);
+		else if (ldx > 50) openLightbox(current - 1);
+	});
+})();
+</script>
 </body>
 </html>
