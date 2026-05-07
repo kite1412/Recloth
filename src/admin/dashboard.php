@@ -195,15 +195,16 @@ require_once __DIR__ . '/../config/database.php';
         </thead>
         <tbody>
           <?php
-          $recent_orders = $conn->query("
+          $stmt = $pdo->query("
             SELECT o.id, o.user_id, u.name, o.total_price, o.status, DATE(o.created_at) as order_date
             FROM orders o
             JOIN users u ON o.user_id = u.id
             ORDER BY o.created_at DESC
             LIMIT 5
           ");
-          if ($recent_orders->num_rows > 0) {
-              while ($order = $recent_orders->fetch_assoc()) {
+          $recent_orders = $stmt->fetchAll(PDO::FETCH_ASSOC);
+          if (count($recent_orders) > 0) {
+              foreach ($recent_orders as $order) {
                   $formatted_id = '#ORD-' . str_pad($order['id'], 3, '0', STR_PAD_LEFT);
                   $formatted_user_id = 'U' . str_pad($order['user_id'], 3, '0', STR_PAD_LEFT);
                   $formatted_price = 'Rp ' . number_format($order['total_price'], 0, ',', '.');
