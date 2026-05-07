@@ -160,44 +160,52 @@ try {
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel – Products</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'Symphony';
+      src: url('../../public/fonts/symphony-pro-regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --sb-bg: #0f1117; --sb-txt: #a0a8b8; --sb-active: #2563eb;
-      --bg: #f4f6fb; --card: #ffffff; --border: #e5e9f2;
-      --txt: #141928; --txt2: #6b7694;
-      --blue: #2563eb; --blue-l: #dbeafe;
-      --green: #16a34a; --green-l: #dcfce7;
-      --red: #dc2626; --red-l: #fee2e2;
-      --yel: #a16207; --yel-l: #fef9c3;
-      --gray: #f1f5f9;
-      --shadow: 0 1px 4px rgba(0,0,0,.07), 0 4px 16px rgba(0,0,0,.05);
-      --r: 14px; --rs: 8px;
-      --font: 'DM Sans', sans-serif; --mono: 'JetBrains Mono', monospace;
+      --sb-bg: #ffffff; --sb-txt: #6f6f6f; --sb-active: #f4f4f4;
+      --bg: #f4f4f4; --card: #ffffff; --border: #e6e6e6;
+      --txt: #121212; --txt2: #6f6f6f;
+      --black: #111111;
+      --blue: #111111; --blue-l: #f4f4f4;
+      --green: #1ea672; --green-l: #e8f6f1;
+      --red: #d24e4e; --red-l: #fbeeee;
+      --yel: #ca8a04; --yel-l: #fef9c3;
+      --gray: #f1f1f1;
+      --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+      --r: 16px; --rs: 8px;
+      --font: 'Montserrat', sans-serif; --mono: 'JetBrains Mono', monospace;
     }
     body { font-family: var(--font); background: var(--bg); color: var(--txt); display: flex; min-height: 100vh; font-size: 14px; }
 
     /* ── Sidebar ─── */
-    .sidebar { width: 230px; min-height: 100vh; background: var(--sb-bg); display: flex; flex-direction: column; padding: 28px 0; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; }
+    .sidebar { width: 230px; min-height: 100vh; background: var(--sb-bg); display: flex; flex-direction: column; padding: 28px 0; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; border-right: 1px solid var(--border); }
     .sb-brand { padding: 0 24px 32px; }
-    .sb-brand .title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -.3px; }
-    .sb-brand .sub   { font-size: 11.5px; color: #5a6480; margin-top: 2px; }
+    .sb-brand .title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
+    .sb-brand .sub   { display: none; }
     .nav { flex: 1; }
     .nav a { display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px; color: var(--sb-txt); font-size: 14px; font-weight: 500; transition: all .18s; border-left: 3px solid transparent; margin: 1px 0; text-decoration: none; }
-    .nav a:hover { background: rgba(255,255,255,.05); color: #fff; }
-    .nav a.active { background: var(--sb-active); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid transparent; }
+    .nav a:hover { background: #fafafa; color: var(--black); }
+    .nav a.active { background: var(--sb-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
     .nav a svg { width: 17px; height: 17px; flex-shrink: 0; }
-    .sb-bottom { padding: 16px 24px 0; border-top: 1px solid #1e2535; margin-top: 16px; }
-    .sb-bottom a { display: flex; align-items: center; gap: 10px; color: #5a6480; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color .15s; text-decoration: none; }
+    .sb-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
+    .sb-bottom a { display: flex; align-items: center; gap: 10px; color: var(--sb-txt); font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color .15s; text-decoration: none; }
     .sb-bottom a:hover { color: var(--red); }
 
     /* ── Main ─── */
     .main { margin-left: 230px; flex: 1; padding: 36px 40px; overflow-y: auto; min-height: 100vh; }
     .page-hd { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .page-hd h1 { font-size: 28px; font-weight: 700; letter-spacing: -.6px; }
-    .btn-add { background: var(--blue); color: #fff; border: none; padding: 11px 20px; border-radius: var(--rs); font-size: 13.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: var(--font); box-shadow: 0 2px 8px rgba(37,99,235,.25); transition: all .18s; }
-    .btn-add:hover { background: #1d4ed8; transform: translateY(-1px); }
+    .page-hd h1 { font-size: 28px; font-weight: 700; letter-spacing: -.6px; color: var(--black); }
+    .btn-add { background: var(--black); color: #fff; border: none; padding: 11px 20px; border-radius: var(--rs); font-size: 13.5px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; font-family: var(--font); box-shadow: 0 2px 8px rgba(17,17,17,.25); transition: all .18s; }
+    .btn-add:hover { background: #333; transform: translateY(-1px); }
 
     /* ── Alert ─── */
     .alert { padding: 12px 18px; border-radius: var(--rs); margin-bottom: 20px; font-size: 13.5px; font-weight: 500; display: flex; align-items: center; gap: 8px; animation: fadeIn .3s; transition: opacity .5s; }

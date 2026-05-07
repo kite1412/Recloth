@@ -11,36 +11,44 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - Pesanan</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'Symphony';
+    src: url('../../public/fonts/symphony-pro-regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --sidebar-bg: #0f1117;
-    --sidebar-text: #a0a8b8;
-    --sidebar-active: #2563eb;
-    --main-bg: #f4f6fb;
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #6f6f6f;
+    --sidebar-active: #f4f4f4;
+    --main-bg: #f4f4f4;
     --card-bg: #ffffff;
-    --border: #e5e9f2;
-    --text-primary: #141928;
-    --text-secondary: #6b7694;
-    --blue: #2563eb;
-    --blue-light: #dbeafe;
-    --green: #16a34a;
-    --green-light: #dcfce7;
+    --border: #e6e6e6;
+    --text-primary: #121212;
+    --text-secondary: #6f6f6f;
+    --black: #111111;
+    --blue: #111111;
+    --blue-light: #f4f4f4;
+    --green: #1ea672;
+    --green-light: #e8f6f1;
     --yellow: #ca8a04;
     --yellow-light: #fef9c3;
     --purple: #7c3aed;
     --purple-light: #ede9fe;
-    --red: #dc2626;
-    --red-light: #fee2e2;
-    --gray: #64748b;
-    --gray-light: #f1f5f9;
-    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.13);
-    --radius: 12px;
-    --radius-sm: 7px;
-    --font: 'DM Sans', sans-serif;
+    --red: #d24e4e;
+    --red-light: #fbeeee;
+    --gray: #6f6f6f;
+    --gray-light: #f1f1f1;
+    --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+    --shadow-lg: 0 8px 32px rgba(17, 17, 17, 0.13);
+    --radius: 16px;
+    --radius-sm: 8px;
+    --font: 'Montserrat', sans-serif;
     --mono: 'JetBrains Mono', monospace;
   }
 
@@ -49,11 +57,11 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
   .sidebar {
     width: 230px; min-height: 100vh; background: var(--sidebar-bg);
     display: flex; flex-direction: column; padding: 28px 0;
-    position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; border-right: 1px solid var(--border);
   }
   .sidebar-brand { padding: 0 24px 32px; }
-  .sidebar-brand .brand-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-  .sidebar-brand .brand-sub { font-size: 11.5px; color: #5a6480; margin-top: 2px; }
+  .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
+  .sidebar-brand .brand-sub { display: none; }
   .sidebar-nav { flex: 1; }
   .nav-item {
     display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px;
@@ -61,24 +69,24 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     transition: all 0.18s; border-left: 3px solid transparent; margin: 1px 0;
     text-decoration: none;
   }
-  .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-  .nav-item.active { background: var(--sidebar-active); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid transparent; }
+  .nav-item:hover { background: #fafafa; color: var(--black); }
+  .nav-item.active { background: var(--sidebar-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
   .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-  .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid #1e2535; margin-top: 16px; }
-  .nav-logout { display: flex; align-items: center; gap: 10px; color: #5a6480; cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
+  .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
+  .nav-logout { display: flex; align-items: center; gap: 10px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
   .nav-logout:hover { color: var(--red); }
 
   .main { margin-left: 230px; flex: 1; padding: 36px 40px; min-height: 100vh; }
 
   .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--text-primary); }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
   .btn-export {
-    display: flex; align-items: center; gap: 8px; background: var(--blue);
+    display: flex; align-items: center; gap: 8px; background: var(--black);
     color: #fff; border: none; border-radius: var(--radius-sm); padding: 11px 20px;
     font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: var(--font);
-    box-shadow: 0 2px 8px rgba(37,99,235,0.25); transition: all 0.18s;
+    box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
   }
-  .btn-export:hover { background: #1d4ed8; box-shadow: 0 4px 16px rgba(37,99,235,0.35); transform: translateY(-1px); }
+  .btn-export:hover { background: #333; box-shadow: 0 4px 16px rgba(17,17,17,0.35); transform: translateY(-1px); }
   .btn-export svg { width: 15px; height: 15px; }
 
   .filters-bar {

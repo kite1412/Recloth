@@ -88,29 +88,37 @@ if ($action === 'add') {
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel - Categories</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'Symphony';
+      src: url('../../public/fonts/symphony-pro-regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --sidebar-bg: #0f1117;
-      --sidebar-text: #a0a8b8;
-      --sidebar-active: #2563eb;
-      --main-bg: #f4f6fb;
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #6f6f6f;
+      --sidebar-active: #f4f4f4;
+      --main-bg: #f4f4f4;
       --card-bg: #ffffff;
-      --border: #e5e9f2;
-      --text-primary: #141928;
-      --text-secondary: #6b7694;
-      --blue: #2563eb;
-      --blue-light: #dbeafe;
-      --green: #16a34a;
-      --red: #dc2626;
-      --red-light: #fee2e2;
-      --gray-light: #f1f5f9;
-      --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
-      --radius: 14px;
+      --border: #e6e6e6;
+      --text-primary: #121212;
+      --text-secondary: #6f6f6f;
+      --black: #111111;
+      --blue: #111111;
+      --blue-light: #f4f4f4;
+      --green: #1ea672;
+      --red: #d24e4e;
+      --red-light: #fbeeee;
+      --gray-light: #f1f1f1;
+      --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+      --radius: 16px;
       --radius-sm: 8px;
-      --font: 'DM Sans', sans-serif;
+      --font: 'Montserrat', sans-serif;
     }
 
     body { font-family: var(--font); background: var(--main-bg); color: var(--text-primary); display: flex; min-height: 100vh; font-size: 14px; overflow-y: auto; }
@@ -118,11 +126,11 @@ if ($action === 'add') {
     .sidebar {
       width: 230px; min-height: 100vh; background: var(--sidebar-bg);
       display: flex; flex-direction: column; padding: 28px 0;
-      position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; border-right: 1px solid var(--border);
     }
     .sidebar-brand { padding: 0 24px 32px; }
-    .sidebar-brand .brand-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-    .sidebar-brand .brand-sub { font-size: 11.5px; color: #5a6480; margin-top: 2px; }
+    .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
+    .sidebar-brand .brand-sub { display: none; }
     .sidebar-nav { flex: 1; }
     .nav-item {
       display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px;
@@ -130,24 +138,24 @@ if ($action === 'add') {
       transition: all 0.18s; border-left: 3px solid transparent; margin: 1px 0;
       text-decoration: none;
     }
-    .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-    .nav-item.active { background: var(--sidebar-active); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid transparent; }
+    .nav-item:hover { background: #fafafa; color: var(--black); }
+    .nav-item.active { background: var(--sidebar-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
     .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-    .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid #1e2535; margin-top: 16px; }
-    .nav-logout { display: flex; align-items: center; gap: 10px; color: #5a6480; cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
+    .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
+    .nav-logout { display: flex; align-items: center; gap: 10px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
     .nav-logout:hover { color: var(--red); }
 
     .main { margin-left: 230px; flex: 1; padding: 36px 40px; overflow-y: auto; min-height: 100vh; }
 
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; }
+    .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
     .btn-add {
-      background: var(--blue); color: #fff; border: none; padding: 11px 20px;
+      background: var(--black); color: #fff; border: none; padding: 11px 20px;
       border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600;
       cursor: pointer; display: flex; align-items: center; gap: 6px;
-      font-family: var(--font); box-shadow: 0 2px 8px rgba(37,99,235,0.25); transition: all 0.18s;
+      font-family: var(--font); box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
     }
-    .btn-add:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
+    .btn-add:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(17,17,17,0.35); }
 
     .search-box {
       background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);
