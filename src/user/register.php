@@ -250,6 +250,26 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                         </div>
                     </div>
 
+                    <div class="space-y-1.5">
+                        <label for="address" class="block text-sm font-semibold text-gray-700">Alamat Lengkap</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 pt-3 pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                            <textarea
+                                id="address"
+                                name="address"
+                                rows="3"
+                                placeholder="Masukkan alamat lengkap pengiriman"
+                                class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none resize-none"
+                                required
+                            ></textarea>
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="space-y-1.5">
                             <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
@@ -327,6 +347,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
         document.getElementById('registerForm').addEventListener('submit', function(e) {
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
+            const address = document.getElementById('address').value.trim();
             const password = document.getElementById('password').value.trim();
             const passwordConfirm = document.getElementById('password_confirm').value.trim();
             const terms = document.getElementById('terms').checked;
@@ -336,7 +357,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
             errorMessage.classList.add('hidden');
             errorText.textContent = '';
 
-            if (!name || !email || !password || !passwordConfirm) {
+            if (!name || !email || !address || !password || !passwordConfirm) {
                 e.preventDefault();
                 errorText.textContent = 'Semua field harus diisi';
                 errorMessage.classList.remove('hidden');

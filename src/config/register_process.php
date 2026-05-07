@@ -4,11 +4,12 @@ require_once __DIR__ . '/database.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    $address = trim($_POST['address'] ?? '');
     $password = $_POST['password'] ?? '';
     $password_confirm = $_POST['password_confirm'] ?? '';
 
     // Validasi
-    if (empty($name) || empty($email) || empty($password) || empty($password_confirm)) {
+    if (empty($name) || empty($email) || empty($address) || empty($password) || empty($password_confirm)) {
         header("Location: ../user/register.php?error=" . urlencode("Semua field harus diisi"));
         exit;
     }
@@ -41,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Insert user
     try {
-        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'user')");
-        $stmt->execute([$name, $email, $hashedPassword]);
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, address, password, role) VALUES (?, ?, ?, ?, 'user')");
+        $stmt->execute([$name, $email, $address, $hashedPassword]);
         
         header("Location: ../user/register.php?success=" . urlencode("Pendaftaran berhasil! Silakan login."));
         exit;
