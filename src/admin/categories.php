@@ -1,44 +1,136 @@
+<?php
+// =============================================
+// Database Connection
+// =============================================
+$host = 'localhost';
+$dbname = 'recloth';
+$user = 'root';
+$pass = '';
+
+try {
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
+} catch (PDOException $e) {
+    die(json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]));
+}
+
+// =============================================
+// AJAX Handler
+// =============================================
+if (isset($_GET['action'])) {
+    header('Content-Type: application/json');
+    $action = $_GET['action'];
+
+    if ($action === 'list') {
+        $q = '%' . ($_GET['q'] ?? '') . '%';
+        $stmt = $pdo->prepare("SELECT * FROM categories WHERE name LIKE ? ORDER BY id ASC");
+        $stmt->execute([$q]);
+        echo json_encode($stmt->fetchAll());
+        exit;
+    }
+
+if ($action === 'add') {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $name = trim($data['name'] ?? '');
+    if (!$name) { echo json_encode(['error' => 'Nama kategori harus diisi']); exit; }
+
+    // Cari ID kosong
+    $stmt = $pdo->query("
+        SELECT t1.id + 1 AS next_id
+        FROM categories t1
+        LEFT JOIN categories t2 ON t1.id + 1 = t2.id
+        WHERE t2.id IS NULL
+        ORDER BY t1.id ASC
+        LIMIT 1
+    ");
+    $row = $stmt->fetch();
+
+    $newId = $row ? $row['next_id'] : 1;
+
+    // Insert pakai ID manual
+    $stmt = $pdo->prepare("INSERT INTO categories (id, name, created_at) VALUES (?, ?, NOW())");
+    $stmt->execute([$newId, $name]);
+
+    echo json_encode(['success' => true, 'id' => $newId]);
+    exit;
+}
+
+    if ($action === 'edit') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id   = (int)($data['id'] ?? 0);
+        $name = trim($data['name'] ?? '');
+        if (!$id || !$name) { echo json_encode(['error' => 'Data tidak valid']); exit; }
+        $stmt = $pdo->prepare("UPDATE categories SET name = ? WHERE id = ?");
+        $stmt->execute([$name, $id]);
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    if ($action === 'delete') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $id   = (int)($data['id'] ?? 0);
+        if (!$id) { echo json_encode(['error' => 'ID tidak valid']); exit; }
+        $stmt = $pdo->prepare("DELETE FROM categories WHERE id = ?");
+        $stmt->execute([$id]);
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    echo json_encode(['error' => 'Action tidak dikenal']);
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel - Categories</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'Symphony';
+      src: url('../../public/fonts/symphony-pro-regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --sidebar-bg: #0f1117;
-      --sidebar-text: #a0a8b8;
-      --sidebar-active: #2563eb;
-      --main-bg: #f4f6fb;
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #6f6f6f;
+      --sidebar-active: #f4f4f4;
+      --main-bg: #f4f4f4;
       --card-bg: #ffffff;
-      --border: #e5e9f2;
-      --text-primary: #141928;
-      --text-secondary: #6b7694;
-      --blue: #2563eb;
-      --blue-light: #dbeafe;
-      --green: #16a34a;
-      --red: #dc2626;
-      --red-light: #fee2e2;
-      --gray-light: #f1f5f9;
-      --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
-      --radius: 14px;
+      --border: #e6e6e6;
+      --text-primary: #121212;
+      --text-secondary: #6f6f6f;
+      --black: #111111;
+      --blue: #111111;
+      --blue-light: #f4f4f4;
+      --green: #1ea672;
+      --red: #d24e4e;
+      --red-light: #fbeeee;
+      --gray-light: #f1f1f1;
+      --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+      --radius: 16px;
       --radius-sm: 8px;
-      --font: 'DM Sans', sans-serif;
+      --font: 'Montserrat', sans-serif;
     }
 
-    body { font-family: var(--font); background: var(--main-bg); color: var(--text-primary); display: flex; min-height: 100vh; font-size: 14px; overflow: hidden; }
+    body { font-family: var(--font); background: var(--main-bg); color: var(--text-primary); display: flex; min-height: 100vh; font-size: 14px; overflow-y: auto; }
 
     .sidebar {
       width: 230px; min-height: 100vh; background: var(--sidebar-bg);
       display: flex; flex-direction: column; padding: 28px 0;
-      position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; border-right: 1px solid var(--border);
     }
     .sidebar-brand { padding: 0 24px 32px; }
-    .sidebar-brand .brand-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-    .sidebar-brand .brand-sub { font-size: 11.5px; color: #5a6480; margin-top: 2px; }
+    .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
+    .sidebar-brand .brand-sub { display: none; }
     .sidebar-nav { flex: 1; }
     .nav-item {
       display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px;
@@ -46,24 +138,24 @@
       transition: all 0.18s; border-left: 3px solid transparent; margin: 1px 0;
       text-decoration: none;
     }
-    .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-    .nav-item.active { background: var(--sidebar-active); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid transparent; }
+    .nav-item:hover { background: #fafafa; color: var(--black); }
+    .nav-item.active { background: var(--sidebar-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
     .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-    .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid #1e2535; margin-top: 16px; }
-    .nav-logout { display: flex; align-items: center; gap: 10px; color: #5a6480; cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
+    .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
+    .nav-logout { display: flex; align-items: center; gap: 10px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
     .nav-logout:hover { color: var(--red); }
 
     .main { margin-left: 230px; flex: 1; padding: 36px 40px; overflow-y: auto; min-height: 100vh; }
 
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; }
+    .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
     .btn-add {
-      background: var(--blue); color: #fff; border: none; padding: 11px 20px;
+      background: var(--black); color: #fff; border: none; padding: 11px 20px;
       border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600;
       cursor: pointer; display: flex; align-items: center; gap: 6px;
-      font-family: var(--font); box-shadow: 0 2px 8px rgba(37,99,235,0.25); transition: all 0.18s;
+      font-family: var(--font); box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
     }
-    .btn-add:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
+    .btn-add:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(17,17,17,0.35); }
 
     .search-box {
       background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);
@@ -81,7 +173,11 @@
     }
     .cat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); border-color: #d0d8ee; }
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-    .cat-icon { width: 56px; height: 56px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
+    .cat-icon {
+      width: 48px; height: 48px; border-radius: 12px; background: var(--blue-light);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cat-icon svg { width: 22px; height: 22px; color: var(--blue); }
     .card-actions { display: flex; gap: 6px; }
     .icon-btn { width: 32px; height: 32px; border: none; background: transparent; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
     .icon-btn svg { width: 15px; height: 15px; }
@@ -89,11 +185,20 @@
     .icon-btn.del  { color: var(--red); }  .icon-btn.del:hover  { background: var(--red-light); }
     .cat-name { font-size: 17px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; cursor: pointer; }
     .cat-name:hover { color: var(--blue); }
-    .cat-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; min-height: 36px; line-height: 1.5; }
-    .cat-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border); }
-    .cat-footer span { font-size: 13px; color: var(--text-secondary); }
-    .cat-footer strong { font-size: 16px; font-weight: 700; color: var(--blue); }
+    .cat-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px solid var(--border); margin-top: auto; }
+    .cat-footer span { font-size: 12px; color: var(--text-secondary); font-family: 'JetBrains Mono', monospace; }
     .empty { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 48px; font-size: 15px; }
+    .loading { grid-column: 1 / -1; text-align: center; color: var(--text-secondary); padding: 48px; font-size: 15px; }
+
+    .toast {
+      position: fixed; bottom: 28px; right: 28px; background: #1e2535; color: #fff;
+      padding: 12px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 500;
+      z-index: 999; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(.34,1.56,.64,1);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: var(--green); }
+    .toast.error { background: var(--red); }
 
     .overlay { position: fixed; inset: 0; background: rgba(10,14,28,0.5); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
     .overlay.show { display: flex; }
@@ -108,30 +213,26 @@
 
     .form-group { margin-bottom: 16px; }
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
-    .form-group input, .form-group textarea, .form-group select {
+    .form-group input {
       width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
       font-size: 14px; outline: none; color: var(--text-primary); background: #fff; font-family: var(--font);
     }
-    .form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-
-    .emoji-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .emoji-opt { width: 36px; height: 36px; border-radius: 8px; border: 1.5px solid var(--border); background: var(--main-bg); cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
-    .emoji-opt.selected, .emoji-opt:hover { border-color: var(--blue); background: var(--blue-light); }
+    .form-group input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
 
     .btn { padding: 9px 18px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600; cursor: pointer; border: none; font-family: var(--font); transition: all 0.15s; }
     .btn-primary { background: var(--blue); color: #fff; } .btn-primary:hover { background: #1d4ed8; }
     .btn-secondary { background: var(--gray-light); color: var(--text-secondary); border: 1px solid var(--border); } .btn-secondary:hover { background: var(--border); }
     .btn-danger { background: var(--red); color: #fff; } .btn-danger:hover { background: #b91c1c; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 
     .view-hero { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
-    .view-icon-big { width: 72px; height: 72px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 36px; flex-shrink: 0; }
+    .view-icon-big { width: 64px; height: 64px; border-radius: 14px; background: var(--blue-light); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .view-icon-big svg { width: 28px; height: 28px; color: var(--blue); }
     .view-title { font-size: 20px; font-weight: 700; color: var(--text-primary); }
-    .view-sub { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
     .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
     .detail-row:last-child { border-bottom: none; }
     .detail-label { color: var(--text-secondary); }
-    .detail-value { font-weight: 600; color: var(--text-primary); }
+    .detail-value { font-weight: 600; color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 13px; }
 
     .confirm-icon { text-align: center; font-size: 48px; margin-bottom: 12px; }
     .confirm-text { text-align: center; font-size: 15px; font-weight: 600; color: var(--text-primary); }
@@ -168,10 +269,10 @@
     </a>
   </nav>
   <div class="sidebar-bottom">
-    <div class="nav-logout">
+    <a href="../config/logout.php" class="nav-logout" style="text-decoration: none;">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       Logout
-    </div>
+    </a>
   </div>
 </aside>
 
@@ -190,12 +291,15 @@
     <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
       <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </svg>
-    <input type="text" id="searchInput" placeholder="Search categories..." oninput="renderGrid()"/>
+    <input type="text" id="searchInput" placeholder="Search categories..." oninput="debounceSearch()"/>
   </div>
 
-  <div class="grid" id="catGrid"></div>
+  <div class="grid" id="catGrid">
+    <div class="loading">Memuat data...</div>
+  </div>
 </div>
 
+<!-- View Modal -->
 <div class="overlay" id="viewModal">
   <div class="modal">
     <div class="modal-header">
@@ -209,6 +313,7 @@
   </div>
 </div>
 
+<!-- Form Modal -->
 <div class="overlay" id="formModal">
   <div class="modal">
     <div class="modal-header">
@@ -221,39 +326,15 @@
         <label>Nama Kategori</label>
         <input type="text" id="fName" placeholder="Cth: Atasan Wanita"/>
       </div>
-      <div class="form-group">
-        <label>Deskripsi</label>
-        <textarea id="fDesc" rows="2" placeholder="Deskripsi singkat kategori..."></textarea>
-      </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Jumlah Produk</label>
-          <input type="number" id="fCount" placeholder="0"/>
-        </div>
-        <div class="form-group">
-          <label>Warna Ikon</label>
-          <select id="fColor">
-            <option value="#eff6ff|#dbeafe">Biru</option>
-            <option value="#fdf4ff|#f3e8ff">Ungu</option>
-            <option value="#fff7ed|#ffedd5">Oranye</option>
-            <option value="#f0fdf4|#dcfce7">Hijau</option>
-            <option value="#fdf2f8|#fce7f3">Pink</option>
-            <option value="#fffbeb|#fef3c7">Kuning</option>
-          </select>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Pilih Emoji</label>
-        <div class="emoji-grid" id="emojiGrid"></div>
-      </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeAll()">Batal</button>
-      <button class="btn btn-primary" onclick="saveCategory()">Simpan</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="saveCategory()">Simpan</button>
     </div>
   </div>
 </div>
 
+<!-- Delete Modal -->
 <div class="overlay" id="deleteModal">
   <div class="modal" style="width:360px">
     <div class="modal-header">
@@ -268,148 +349,170 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeAll()">Batal</button>
-      <button class="btn btn-danger" onclick="confirmDelete()">Hapus</button>
+      <button class="btn btn-danger" id="delBtn" onclick="confirmDelete()">Hapus</button>
     </div>
   </div>
 </div>
 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
 <script>
-  const EMOJIS = ['👕','👖','🧥','👗','👟','👠','👜','👒','🧣','🧤','🧦','👙','🩱','🩲','🩳','👚','🥻','🩴','👛','💍','💎','🕶️','⌚','🎀'];
-  const COLORS = {
-    '#eff6ff|#dbeafe': '#eff6ff', '#fdf4ff|#f3e8ff': '#fdf4ff',
-    '#fff7ed|#ffedd5': '#fff7ed', '#f0fdf4|#dcfce7': '#f0fdf4',
-    '#fdf2f8|#fce7f3': '#fdf2f8', '#fffbeb|#fef3c7': '#fffbeb',
-  };
-
-  let selEmoji = '👕';
-  let categories = [
-    { id:1, name:"Atasan",    desc:"Kaos, kemeja, blouse, dan tops lainnya.",          count:45, emoji:"👕", color:"#eff6ff" },
-    { id:2, name:"Bawahan",   desc:"Celana, rok, jeans, dan shorts.",                  count:38, emoji:"👖", color:"#fdf4ff" },
-    { id:3, name:"Outerwear", desc:"Jaket, blazer, cardigan, dan coat.",               count:22, emoji:"🧥", color:"#fff7ed" },
-    { id:4, name:"Dress",     desc:"Midi dress, mini dress, dan maxi dress.",          count:31, emoji:"👗", color:"#fdf2f8" },
-    { id:5, name:"Sepatu",    desc:"Sneakers, heels, sandal, dan boots fashion.",      count:60, emoji:"👟", color:"#f0fdf4" },
-    { id:6, name:"Aksesoris", desc:"Tas, topi, perhiasan, dan pelengkap outfit.",      count:78, emoji:"👜", color:"#fffbeb" },
-  ];
-  let nextId = 7;
   let delTarget = null;
+  let searchTimer = null;
 
-  function renderGrid() {
-    const q = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = categories.filter(c =>
-      c.name.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q)
-    );
+  const ICON_SVG = `<svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 10h18M3 14h18M9 3v18M15 3v18" stroke-linecap="round"/></svg>`;
+
+  // ── Toast ─────────────────────────────────────────────
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // ── Format date ───────────────────────────────────────
+  function fmtDate(str) {
+    if (!str) return '-';
+    const d = new Date(str);
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  // ── Load & render ─────────────────────────────────────
+  async function loadGrid() {
+    const q = document.getElementById('searchInput').value;
     const grid = document.getElementById('catGrid');
-    if (!filtered.length) {
-      grid.innerHTML = `<div class="empty">Tidak ada kategori ditemukan.</div>`; return;
-    }
-    grid.innerHTML = filtered.map(c => `
-      <div class="cat-card">
-        <div class="card-top">
-          <div class="cat-icon" style="background:${c.color}">${c.emoji}</div>
-          <div class="card-actions">
-            <button class="icon-btn edit" title="Edit" onclick="openEdit(${c.id})">
-              <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-            </button>
-            <button class="icon-btn del" title="Hapus" onclick="openDelete(${c.id})">
-              <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-            </button>
+    try {
+      const res = await fetch(`categories.php?action=list&q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      if (data.error) { grid.innerHTML = `<div class="empty">⚠️ ${data.error}</div>`; return; }
+      if (!data.length) { grid.innerHTML = `<div class="empty">Tidak ada kategori ditemukan.</div>`; return; }
+      grid.innerHTML = data.map(c => `
+        <div class="cat-card">
+          <div class="card-top">
+            <div class="cat-icon">${ICON_SVG}</div>
+            <div class="card-actions">
+              <button class="icon-btn edit" title="Edit" onclick="openEdit(${c.id}, ${JSON.stringify(c.name).replace(/"/g,'&quot;')})">
+                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="icon-btn del" title="Hapus" onclick="openDelete(${c.id}, ${JSON.stringify(c.name).replace(/"/g,'&quot;')})">
+                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="cat-name" onclick="openView(${c.id}, ${JSON.stringify(c.name).replace(/"/g,'&quot;')}, ${JSON.stringify(c.created_at || '').replace(/"/g,'&quot;')})">${escHtml(c.name)}</div>
+          <div class="cat-footer">
+            <span>ID: ${c.id}</span>
+            <span>${fmtDate(c.created_at)}</span>
           </div>
         </div>
-        <div class="cat-name" onclick="openView(${c.id})">${c.name}</div>
-        <div class="cat-desc">${c.desc}</div>
-        <div class="cat-footer">
-          <span>Products</span>
-          <strong>${c.count}</strong>
-        </div>
-      </div>
-    `).join('');
+      `).join('');
+    } catch (e) {
+      grid.innerHTML = `<div class="empty">⚠️ Gagal memuat data. Periksa koneksi database.</div>`;
+    }
   }
 
-  function buildEmojiGrid(selected) {
-    selEmoji = selected || EMOJIS[0];
-    document.getElementById('emojiGrid').innerHTML = EMOJIS.map(e => `
-      <div class="emoji-opt${e === selEmoji ? ' selected' : ''}" onclick="selectEmoji('${e}', this)">${e}</div>
-    `).join('');
+  function debounceSearch() {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadGrid, 300);
   }
 
-  function selectEmoji(e, el) {
-    selEmoji = e;
-    document.querySelectorAll('.emoji-opt').forEach(x => x.classList.remove('selected'));
-    el.classList.add('selected');
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  function openView(id) {
-    const c = categories.find(x => x.id === id);
+  // ── View ──────────────────────────────────────────────
+  function openView(id, name, created_at) {
     document.getElementById('viewBody').innerHTML = `
       <div class="view-hero">
-        <div class="view-icon-big" style="background:${c.color}">${c.emoji}</div>
+        <div class="view-icon-big">${ICON_SVG}</div>
         <div>
-          <div class="view-title">${c.name}</div>
-          <div class="view-sub">${c.desc}</div>
+          <div class="view-title">${escHtml(name)}</div>
         </div>
       </div>
-      <div class="detail-row"><span class="detail-label">Nama Kategori</span><span class="detail-value">${c.name}</span></div>
-      <div class="detail-row"><span class="detail-label">Deskripsi</span><span class="detail-value" style="max-width:260px;text-align:right">${c.desc}</span></div>
-      <div class="detail-row"><span class="detail-label">Jumlah Produk</span><span class="detail-value" style="color:var(--blue);font-weight:700">${c.count} produk</span></div>
-      <div class="detail-row"><span class="detail-label">Emoji</span><span class="detail-value">${c.emoji}</span></div>
+      <div class="detail-row"><span class="detail-label">ID</span><span class="detail-value">#${id}</span></div>
+      <div class="detail-row"><span class="detail-label">Nama Kategori</span><span class="detail-value">${escHtml(name)}</span></div>
+      <div class="detail-row"><span class="detail-label">Dibuat</span><span class="detail-value">${fmtDate(created_at)}</span></div>
     `;
     document.getElementById('viewModal').classList.add('show');
   }
 
+  // ── Add ───────────────────────────────────────────────
   function openAdd() {
     document.getElementById('formTitle').textContent = 'Tambah Kategori';
     document.getElementById('editId').value = '';
     document.getElementById('fName').value = '';
-    document.getElementById('fDesc').value = '';
-    document.getElementById('fCount').value = '';
-    document.getElementById('fColor').value = '#eff6ff|#dbeafe';
-    buildEmojiGrid('👕');
     document.getElementById('formModal').classList.add('show');
+    setTimeout(() => document.getElementById('fName').focus(), 100);
   }
 
-  function openEdit(id) {
-    const c = categories.find(x => x.id === id);
+  // ── Edit ──────────────────────────────────────────────
+  function openEdit(id, name) {
     document.getElementById('formTitle').textContent = 'Edit Kategori';
     document.getElementById('editId').value = id;
-    document.getElementById('fName').value = c.name;
-    document.getElementById('fDesc').value = c.desc;
-    document.getElementById('fCount').value = c.count;
-    const colorKey = Object.keys(COLORS).find(k => COLORS[k] === c.color) || '#eff6ff|#dbeafe';
-    document.getElementById('fColor').value = colorKey;
-    buildEmojiGrid(c.emoji);
+    document.getElementById('fName').value = name;
     document.getElementById('formModal').classList.add('show');
+    setTimeout(() => document.getElementById('fName').focus(), 100);
   }
 
-  function saveCategory() {
+  // ── Save ──────────────────────────────────────────────
+  async function saveCategory() {
     const name = document.getElementById('fName').value.trim();
-    if (!name) { alert('Nama kategori harus diisi!'); return; }
-    const colorKey = document.getElementById('fColor').value;
-    const data = {
-      name, desc: document.getElementById('fDesc').value.trim() || '-',
-      count: parseInt(document.getElementById('fCount').value) || 0,
-      emoji: selEmoji, color: COLORS[colorKey] || '#eff6ff'
-    };
+    if (!name) { showToast('Nama kategori harus diisi!', 'error'); return; }
     const editId = document.getElementById('editId').value;
-    if (editId) {
-      const i = categories.findIndex(x => x.id === parseInt(editId));
-      categories[i] = { ...categories[i], ...data };
-    } else {
-      categories.push({ id: nextId++, ...data });
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true; btn.textContent = 'Menyimpan...';
+    try {
+      const action = editId ? 'edit' : 'add';
+      const body = editId ? { id: parseInt(editId), name } : { name };
+      const res = await fetch(`categories.php?action=${action}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.error) { showToast(data.error, 'error'); return; }
+      showToast(editId ? 'Kategori berhasil diupdate!' : 'Kategori berhasil ditambahkan!');
+      closeAll();
+      loadGrid();
+    } catch (e) {
+      showToast('Gagal menyimpan. Coba lagi.', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Simpan';
     }
-    closeAll(); renderGrid();
   }
 
-  function openDelete(id) {
+  // ── Delete ────────────────────────────────────────────
+  function openDelete(id, name) {
     delTarget = id;
-    document.getElementById('delName').textContent = categories.find(x => x.id === id).name;
+    document.getElementById('delName').textContent = name;
     document.getElementById('deleteModal').classList.add('show');
   }
 
-  function confirmDelete() {
-    categories = categories.filter(x => x.id !== delTarget);
-    closeAll(); renderGrid();
+  async function confirmDelete() {
+    if (!delTarget) return;
+    const btn = document.getElementById('delBtn');
+    btn.disabled = true; btn.textContent = 'Menghapus...';
+    try {
+      const res = await fetch(`categories.php?action=delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: delTarget })
+      });
+      const data = await res.json();
+      if (data.error) { showToast(data.error, 'error'); return; }
+      showToast('Kategori berhasil dihapus!');
+      closeAll();
+      loadGrid();
+    } catch (e) {
+      showToast('Gagal menghapus. Coba lagi.', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Hapus';
+      delTarget = null;
+    }
   }
 
+  // ── Close ─────────────────────────────────────────────
   function closeAll() {
     document.querySelectorAll('.overlay').forEach(el => el.classList.remove('show'));
   }
@@ -418,7 +521,13 @@
     el.addEventListener('click', e => { if (e.target === el) closeAll(); });
   });
 
-  renderGrid();
+  // ── Enter key in form ─────────────────────────────────
+  document.getElementById('fName').addEventListener('keydown', e => {
+    if (e.key === 'Enter') saveCategory();
+  });
+
+  // ── Init ──────────────────────────────────────────────
+  loadGrid();
 </script>
 </body>
 </html>

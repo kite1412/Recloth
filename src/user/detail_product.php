@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+    header('Location: ../admin/dashboard.php');
+    exit;
+}
 require '../config/database.php';
 require '../config/product_repository.php';
 
@@ -682,7 +686,11 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			</div>
 
 			<div class="actions">
-				<a class="btn primary" href="cart.php?action=add&id=<?= (int) $product['id'] ?>">Tambah ke Keranjang</a>
+				<?php if (isset($_SESSION['user_id'])): ?>
+					<a class="btn primary" href="cart.php?action=add&id=<?= (int) $product['id'] ?>">Tambah ke Keranjang</a>
+				<?php else: ?>
+					<a class="btn primary" href="login.php">Tambah ke Keranjang</a>
+				<?php endif; ?>
 				<a class="btn secondary" href="catalog.php">Kembali ke Katalog</a>
 			</div>
 		</article>

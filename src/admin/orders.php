@@ -1,39 +1,127 @@
+<?php
+session_start();
+if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
+    header('Location: ../../index.php');
+    exit;
+}
+
+$conn = new mysqli("localhost", "root", "", "recloth");
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Handle AJAX status update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {
+    header('Content-Type: application/json');
+    $order_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    
+    if ($order_id > 0 && !empty($status)) {
+        $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $status, $order_id);
+        if ($stmt->execute()) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => $stmt->error]);
+        }
+        $stmt->close();
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Invalid data']);
+    }
+    exit;
+}
+
+// Fetch orders
+$orders_query = $conn->query("
+    SELECT o.*, u.name as customer, u.email as email, DATE_FORMAT(o.created_at, '%d %b %Y') as formatted_date
+    FROM orders o
+    JOIN users u ON o.user_id = u.id
+    ORDER BY o.created_at DESC
+");
+
+$orders = [];
+while($row = $orders_query->fetch_assoc()) {
+    $items_query = $conn->query("
+        SELECT p.name, oi.quantity as qty, oi.price 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        WHERE oi.order_id = " . $row['id']
+    );
+    
+    $items = [];
+    while($item = $items_query->fetch_assoc()) {
+        $items[] = [
+            'name' => $item['name'],
+            'qty' => (int)$item['qty'],
+            'price' => (float)$item['price']
+        ];
+    }
+    
+    $raw_status = strtolower($row['status'] ?: 'pending');
+    $mapped_status = 'menunggu';
+    if ($raw_status === 'selesai' || $raw_status === 'completed') $mapped_status = 'selesai';
+    else if ($raw_status === 'diproses' || $raw_status === 'processing') $mapped_status = 'diproses';
+    else if ($raw_status === 'dikirim' || $raw_status === 'shipped') $mapped_status = 'dikirim';
+    else if ($raw_status === 'dibatalkan' || $raw_status === 'cancelled') $mapped_status = 'dibatalkan';
+
+    $orders[] = [
+        'id' => '#ORD-' . str_pad($row['id'], 3, '0', STR_PAD_LEFT),
+        'real_id' => $row['id'],
+        'customer' => $row['customer'],
+        'email' => $row['email'],
+        'date' => $row['formatted_date'],
+        'items' => $items,
+        'status' => $mapped_status,
+        'address' => $row['payment_address'] ?: '-',
+        'payment' => $row['payment_method'] ?: '-'
+    ];
+}
+$orders_json = json_encode($orders);
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - Pesanan</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'Symphony';
+    src: url('../../public/fonts/symphony-pro-regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --sidebar-bg: #0f1117;
-    --sidebar-text: #a0a8b8;
-    --sidebar-active: #2563eb;
-    --main-bg: #f4f6fb;
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #6f6f6f;
+    --sidebar-active: #f4f4f4;
+    --main-bg: #f4f4f4;
     --card-bg: #ffffff;
-    --border: #e5e9f2;
-    --text-primary: #141928;
-    --text-secondary: #6b7694;
-    --blue: #2563eb;
-    --blue-light: #dbeafe;
-    --green: #16a34a;
-    --green-light: #dcfce7;
+    --border: #e6e6e6;
+    --text-primary: #121212;
+    --text-secondary: #6f6f6f;
+    --black: #111111;
+    --blue: #111111;
+    --blue-light: #f4f4f4;
+    --green: #1ea672;
+    --green-light: #e8f6f1;
     --yellow: #ca8a04;
     --yellow-light: #fef9c3;
     --purple: #7c3aed;
     --purple-light: #ede9fe;
-    --red: #dc2626;
-    --red-light: #fee2e2;
-    --gray: #64748b;
-    --gray-light: #f1f5f9;
-    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.13);
-    --radius: 12px;
-    --radius-sm: 7px;
-    --font: 'DM Sans', sans-serif;
+    --red: #d24e4e;
+    --red-light: #fbeeee;
+    --gray: #6f6f6f;
+    --gray-light: #f1f1f1;
+    --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+    --shadow-lg: 0 8px 32px rgba(17, 17, 17, 0.13);
+    --radius: 16px;
+    --radius-sm: 8px;
+    --font: 'Montserrat', sans-serif;
     --mono: 'JetBrains Mono', monospace;
   }
 
@@ -42,11 +130,11 @@
   .sidebar {
     width: 230px; min-height: 100vh; background: var(--sidebar-bg);
     display: flex; flex-direction: column; padding: 28px 0;
-    position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; border-right: 1px solid var(--border);
   }
   .sidebar-brand { padding: 0 24px 32px; }
-  .sidebar-brand .brand-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-  .sidebar-brand .brand-sub { font-size: 11.5px; color: #5a6480; margin-top: 2px; }
+  .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
+  .sidebar-brand .brand-sub { display: none; }
   .sidebar-nav { flex: 1; }
   .nav-item {
     display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px;
@@ -54,24 +142,24 @@
     transition: all 0.18s; border-left: 3px solid transparent; margin: 1px 0;
     text-decoration: none;
   }
-  .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-  .nav-item.active { background: var(--sidebar-active); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid transparent; }
+  .nav-item:hover { background: #fafafa; color: var(--black); }
+  .nav-item.active { background: var(--sidebar-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
   .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-  .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid #1e2535; margin-top: 16px; }
-  .nav-logout { display: flex; align-items: center; gap: 10px; color: #5a6480; cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
+  .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
+  .nav-logout { display: flex; align-items: center; gap: 10px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
   .nav-logout:hover { color: var(--red); }
 
   .main { margin-left: 230px; flex: 1; padding: 36px 40px; min-height: 100vh; }
 
   .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--text-primary); }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
   .btn-export {
-    display: flex; align-items: center; gap: 8px; background: var(--blue);
+    display: flex; align-items: center; gap: 8px; background: var(--black);
     color: #fff; border: none; border-radius: var(--radius-sm); padding: 11px 20px;
     font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: var(--font);
-    box-shadow: 0 2px 8px rgba(37,99,235,0.25); transition: all 0.18s;
+    box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
   }
-  .btn-export:hover { background: #1d4ed8; box-shadow: 0 4px 16px rgba(37,99,235,0.35); transform: translateY(-1px); }
+  .btn-export:hover { background: #333; box-shadow: 0 4px 16px rgba(17,17,17,0.35); transform: translateY(-1px); }
   .btn-export svg { width: 15px; height: 15px; }
 
   .filters-bar {
@@ -248,7 +336,7 @@
     </a>
   </nav>
   <div class="sidebar-bottom">
-    <a href="logout.php" class="nav-logout">
+    <a href="../config/logout.php" class="nav-logout" style="text-decoration: none;">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
       Logout
     </a>
@@ -325,15 +413,7 @@
 </div>
 
 <script>
-let orders = [
-  { id: '#PSN-001', customer: 'Budi Santoso', email: 'budi@example.com', date: '15 Apr 2026', items: [{ name: 'Kemeja Batik', qty: 1, price: 185000 },{ name: 'Sepatu Adidas', qty: 1, price: 950000 },{ name: 'Tas Kulit', qty: 1, price: 320000 }], status: 'selesai', address: 'Jl. Sudirman No. 1, Jakarta Pusat', payment: 'Kartu Kredit' },
-  { id: '#PSN-002', customer: 'Siti Rahayu', email: 'siti@example.com', date: '16 Apr 2026', items: [{ name: 'MacBook Pro 14"', qty: 1, price: 22500000 }], status: 'diproses', address: 'Jl. Gatot Subroto 5, Bandung', payment: 'Transfer Bank' },
-  { id: '#PSN-003', customer: 'Agus Wijaya', email: 'agus@example.com', date: '17 Apr 2026', items: [{ name: 'Apple Watch SE', qty: 1, price: 3800000 }], status: 'menunggu', address: 'Jl. Pemuda 12, Surabaya', payment: 'COD' },
-  { id: '#PSN-004', customer: 'Dewi Kusuma', email: 'dewi@example.com', date: '17 Apr 2026', items: [{ name: 'iPad Pro 12.9"', qty: 1, price: 18500000 }], status: 'selesai', address: 'Jl. Ahmad Yani 7, Medan', payment: 'GoPay' },
-  { id: '#PSN-005', customer: 'Hendra Pratama', email: 'hendra@example.com', date: '18 Apr 2026', items: [{ name: 'Apple TV 4K', qty: 1, price: 1950000 },{ name: 'HomePod mini', qty: 2, price: 1600000 }], status: 'dikirim', address: 'Jl. Diponegoro 3, Yogyakarta', payment: 'OVO' },
-  { id: '#PSN-006', customer: 'Rina Melati', email: 'rina@example.com', date: '18 Apr 2026', items: [{ name: 'Mac mini M4', qty: 1, price: 9800000 }], status: 'dibatalkan', address: 'Jl. Asia Afrika 20, Bandung', payment: 'Kartu Kredit' },
-  { id: '#PSN-007', customer: 'Fajar Nugroho', email: 'fajar@example.com', date: '19 Apr 2026', items: [{ name: 'Apple Pencil Pro', qty: 1, price: 1750000 },{ name: 'Smart Folio', qty: 1, price: 1100000 }], status: 'diproses', address: 'Jl. Imam Bonjol 8, Semarang', payment: 'DANA' },
-];
+let orders = <?php echo $orders_json; ?>;
 
 const statusLabel = {
   selesai: 'Selesai',
@@ -460,10 +540,33 @@ function saveStatus() {
   if (!currentOrderId || !selectedStatus) return;
   const o = orders.find(x => x.id === currentOrderId);
   if (o.status === selectedStatus) { closeModal(); return; }
+  
   const savedId = o.id;
-  o.status = selectedStatus;
-  filterOrders(); renderStats(); closeModal();
-  showToast(`Status ${savedId} diubah ke "${statusLabel[selectedStatus]}"`);
+  const realId = o.real_id;
+  
+  const formData = new FormData();
+  formData.append('action', 'update_status');
+  formData.append('order_id', realId);
+  formData.append('status', selectedStatus);
+
+  fetch('orders.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      o.status = selectedStatus;
+      filterOrders(); renderStats(); closeModal();
+      showToast(`Status ${savedId} diubah ke "${statusLabel[selectedStatus]}"`);
+    } else {
+      showToast('Gagal mengubah status pesanan');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('Terjadi kesalahan jaringan');
+  });
 }
 
 function showToast(msg) {

@@ -1,5 +1,9 @@
 <?php
 session_start();
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+    header('Location: ../admin/dashboard.php');
+    exit;
+}
 require '../config/database.php';
 
 // Menentukan user_id sementara untuk simulasi

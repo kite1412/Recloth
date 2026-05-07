@@ -8,33 +8,42 @@ require_once __DIR__ . '/../config/database.php';
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Admin Panel - Dashboard</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
+    @font-face {
+      font-family: 'Symphony';
+      src: url('../../public/fonts/symphony-pro-regular.otf') format('opentype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --sidebar-bg: #0f1117;
-      --sidebar-text: #a0a8b8;
-      --sidebar-active: #2563eb;
-      --main-bg: #f4f6fb;
+      --sidebar-bg: #ffffff;
+      --sidebar-text: #6f6f6f;
+      --sidebar-active: #f4f4f4;
+      --main-bg: #f4f4f4;
       --card-bg: #ffffff;
-      --border: #e5e9f2;
-      --text-primary: #141928;
-      --text-secondary: #6b7694;
-      --blue: #2563eb;
-      --blue-light: #dbeafe;
-      --green: #16a34a;
-      --green-light: #dcfce7;
+      --border: #e6e6e6;
+      --text-primary: #121212;
+      --text-secondary: #6f6f6f;
+      --black: #111111;
+      --blue: #111111;
+      --blue-light: #f4f4f4;
+      --green: #1ea672;
+      --green-light: #e8f6f1;
       --yellow: #ca8a04;
       --yellow-light: #fef9c3;
-      --red: #dc2626;
-      --red-light: #fee2e2;
-      --gray: #64748b;
-      --gray-light: #f1f5f9;
-      --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
-      --radius: 14px;
+      --red: #d24e4e;
+      --red-light: #fbeeee;
+      --gray: #6f6f6f;
+      --gray-light: #f1f1f1;
+      --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+      --radius: 16px;
       --radius-sm: 8px;
-      --font: 'DM Sans', sans-serif;
+      --font: 'Montserrat', sans-serif;
+      --font-title: 'Archivo Black', sans-serif;
       --mono: 'JetBrains Mono', monospace;
     }
 
@@ -44,10 +53,11 @@ require_once __DIR__ . '/../config/database.php';
       width: 230px; min-height: 100vh; background: var(--sidebar-bg);
       display: flex; flex-direction: column; padding: 28px 0;
       position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+      border-right: 1px solid var(--border);
     }
     .sidebar-brand { padding: 0 24px 32px; }
-    .sidebar-brand .brand-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-    .sidebar-brand .brand-sub { font-size: 11.5px; color: #5a6480; margin-top: 2px; }
+    .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
+    .sidebar-brand .brand-sub { display: none; }
     .sidebar-nav { flex: 1; }
     .nav-item {
       display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px;
@@ -55,49 +65,51 @@ require_once __DIR__ . '/../config/database.php';
       transition: all 0.18s; border-left: 3px solid transparent; margin: 1px 0;
       text-decoration: none;
     }
-    .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-    .nav-item.active { background: var(--sidebar-active); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid transparent; }
+    .nav-item:hover { background: #fafafa; color: var(--black); }
+    .nav-item.active { background: var(--sidebar-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
     .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-    .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid #1e2535; margin-top: 16px; }
-    .nav-logout { display: flex; align-items: center; gap: 10px; color: #5a6480; cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
+    .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
+    .nav-logout { display: flex; align-items: center; gap: 10px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
     .nav-logout:hover { color: var(--red); }
 
     .main { margin-left: 230px; flex: 1; padding: 36px 40px; min-height: 100vh; }
 
     .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-    .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; }
+    .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
 
     .action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 28px; }
     .action-card {
-      border-radius: var(--radius); padding: 24px; color: #fff;
+      border-radius: var(--radius); padding: 24px; color: var(--text-primary);
       cursor: pointer; position: relative; overflow: hidden;
+      background: var(--card-bg); border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .action-card.blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .action-card.purple { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08); }
     .action-card .card-icon {
-      width: 48px; height: 48px; background: rgba(255,255,255,.2);
+      width: 48px; height: 48px; background: var(--gray-light);
       border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;
     }
-    .action-card .card-icon svg { width: 24px; height: 24px; }
+    .action-card .card-icon svg { width: 24px; height: 24px; stroke: var(--black); }
     .action-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
-    .action-card p  { font-size: 13px; opacity: .85; font-weight: 500; }
-    .action-card .arrow { position: absolute; top: 20px; right: 20px; font-size: 18px; opacity: .7; }
+    .action-card p  { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+    .action-card .arrow { position: absolute; top: 20px; right: 20px; font-size: 18px; color: var(--text-secondary); }
 
     .table-card { background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); }
     .table-header { padding: 20px 24px; border-bottom: 1px solid var(--border); }
     .table-header h3 { font-size: 17px; font-weight: 600; color: var(--text-primary); }
 
     table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 12px 24px; font-size: 13px; color: var(--text-secondary); font-weight: 500; border-bottom: 1px solid var(--border); }
+    th { text-align: left; padding: 12px 24px; font-size: 13px; color: var(--text-secondary); font-weight: 500; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.5px; }
     td { padding: 14px 24px; font-size: 14px; color: var(--text-primary); border-bottom: 1px solid #f3f4f6; }
     tr:last-child td { border-bottom: none; }
-    td.order-id { font-weight: 600; font-family: var(--mono); font-size: 13px; color: var(--blue); }
+    td.order-id { font-weight: 600; font-family: var(--mono); font-size: 13px; color: var(--black); }
     td.date { color: var(--text-secondary); }
     td.amount { font-weight: 600; }
 
-    .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+    .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
     .badge.completed  { background: var(--green-light); color: var(--green); }
-    .badge.processing { background: var(--blue-light); color: var(--blue); }
+    .badge.processing { background: var(--gray-light); color: var(--black); border: 1px solid var(--border); }
     .badge.pending    { background: var(--yellow-light); color: var(--yellow); }
     .badge.cancelled  { background: var(--red-light); color: var(--red); }
   </style>
@@ -132,10 +144,10 @@ require_once __DIR__ . '/../config/database.php';
       </a>
     </nav>
     <div class="sidebar-bottom">
-      <div class="nav-logout">
+      <a href="../config/logout.php" class="nav-logout" style="text-decoration: none;">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         Logout
-      </div>
+      </a>
     </div>
   </aside>
 
@@ -145,19 +157,19 @@ require_once __DIR__ . '/../config/database.php';
     </div>
 
     <div class="action-cards">
-      <div class="action-card blue">
+      <div class="action-card blue" onclick="window.location.href='products.php'">
         <div class="card-icon">
-          <svg fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
           </svg>
         </div>
         <h3>Manage Products</h3>
         <p>Add, edit, or remove products from your store</p>
       </div>
-      <div class="action-card purple">
+      <div class="action-card purple" onclick="window.location.href='categories.php'">
         <span class="arrow">→</span>
         <div class="card-icon">
-          <svg fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24">
+          <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
@@ -182,46 +194,42 @@ require_once __DIR__ . '/../config/database.php';
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="order-id">#ORD-001</td>
-            <td>U001</td>
-            <td>Agus Wijaya</td>
-            <td class="amount">Rp 1.250.000</td>
-            <td><span class="badge completed">Completed</span></td>
-            <td class="date">2026-04-18</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-002</td>
-            <td>U002</td>
-            <td>Budi Santoso</td>
-            <td class="amount">Rp 2.100.000</td>
-            <td><span class="badge processing">Processing</span></td>
-            <td class="date">2026-04-18</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-003</td>
-            <td>U003</td>
-            <td>Dewi Kusuma</td>
-            <td class="amount">Rp 450.000</td>
-            <td><span class="badge pending">Pending</span></td>
-            <td class="date">2026-04-17</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-004</td>
-            <td>U004</td>
-            <td>Fajar Nugroho</td>
-            <td class="amount">Rp 3.750.000</td>
-            <td><span class="badge completed">Completed</span></td>
-            <td class="date">2026-04-17</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-005</td>
-            <td>U005</td>
-            <td>Fitri Handayani</td>
-            <td class="amount">Rp 980.000</td>
-            <td><span class="badge cancelled">Cancelled</span></td>
-            <td class="date">2026-04-16</td>
-          </tr>
+          <?php
+          $recent_orders = $conn->query("
+            SELECT o.id, o.user_id, u.name, o.total_price, o.status, DATE(o.created_at) as order_date
+            FROM orders o
+            JOIN users u ON o.user_id = u.id
+            ORDER BY o.created_at DESC
+            LIMIT 5
+          ");
+          if ($recent_orders->num_rows > 0) {
+              while ($order = $recent_orders->fetch_assoc()) {
+                  $formatted_id = '#ORD-' . str_pad($order['id'], 3, '0', STR_PAD_LEFT);
+                  $formatted_user_id = 'U' . str_pad($order['user_id'], 3, '0', STR_PAD_LEFT);
+                  $formatted_price = 'Rp ' . number_format($order['total_price'], 0, ',', '.');
+                  $status = strtolower($order['status'] ?? 'pending');
+                  
+                  $badge_class = 'pending';
+                  $status_text = 'Menunggu';
+                  if ($status === 'selesai' || $status === 'completed') { $badge_class = 'completed'; $status_text = 'Selesai'; }
+                  else if ($status === 'diproses' || $status === 'processing') { $badge_class = 'processing'; $status_text = 'Diproses'; }
+                  else if ($status === 'dikirim' || $status === 'shipped') { $badge_class = 'processing'; $status_text = 'Dikirim'; }
+                  else if ($status === 'dibatalkan' || $status === 'cancelled') { $badge_class = 'cancelled'; $status_text = 'Dibatalkan'; }
+                  else if ($status === 'menunggu' || $status === 'pending') { $badge_class = 'pending'; $status_text = 'Menunggu'; }
+
+                  echo "<tr>";
+                  echo "<td class='order-id'>{$formatted_id}</td>";
+                  echo "<td>{$formatted_user_id}</td>";
+                  echo "<td>" . htmlspecialchars($order['name']) . "</td>";
+                  echo "<td class='amount'>{$formatted_price}</td>";
+                  echo "<td><span class='badge {$badge_class}'>{$status_text}</span></td>";
+                  echo "<td class='date'>" . htmlspecialchars($order['order_date']) . "</td>";
+                  echo "</tr>";
+              }
+          } else {
+              echo "<tr><td colspan='6' style='text-align: center; padding: 20px; color: var(--text-secondary);'>Belum ada pesanan</td></tr>";
+          }
+          ?>
         </tbody>
       </table>
     </div>

@@ -1,3 +1,10 @@
+<?php
+session_start();
+if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
+    header('Location: ../admin/dashboard.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -302,11 +309,15 @@
                     </button>
                 </form>
 
-                <div class="mt-8 pt-6 border-t border-gray-100">
+                <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-4">
                     <p class="text-center text-sm font-medium text-gray-500">
                         Sudah punya akun?
                         <a href="login.php" class="font-bold text-black hover-underline ml-1">Masuk di sini</a>
                     </p>
+                    <a href="../../index.php" class="w-full text-center text-sm font-semibold text-gray-600 hover:text-black py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        Kembali ke Beranda
+                    </a>
                 </div>
             </div>
         </div>

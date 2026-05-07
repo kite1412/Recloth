@@ -1,37 +1,60 @@
+<?php
+$conn = new mysqli("localhost", "root", "", "recloth");
+
+if ($conn->connect_error) {
+  die("Koneksi gagal: " . $conn->connect_error);
+}
+
+$result = $conn->query("SELECT id, name, email, role, created_at FROM users WHERE role = 'user'");
+$customers = [];
+
+while ($row = $result->fetch_assoc()) {
+  $customers[] = $row;
+}
+?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Panel - Pelanggan</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+  @font-face {
+    font-family: 'Symphony';
+    src: url('../../public/fonts/symphony-pro-regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+  }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --sidebar-bg: #0f1117;
-    --sidebar-text: #a0a8b8;
-    --sidebar-active: #2563eb;
-    --main-bg: #f4f6fb;
+    --sidebar-bg: #ffffff;
+    --sidebar-text: #6f6f6f;
+    --sidebar-active: #f4f4f4;
+    --main-bg: #f4f4f4;
     --card-bg: #ffffff;
-    --border: #e5e9f2;
-    --text-primary: #141928;
-    --text-secondary: #6b7694;
-    --blue: #2563eb;
-    --blue-light: #dbeafe;
-    --green: #16a34a;
-    --green-light: #dcfce7;
+    --border: #e6e6e6;
+    --text-primary: #121212;
+    --text-secondary: #6f6f6f;
+    --black: #111111;
+    --blue: #111111;
+    --blue-light: #f4f4f4;
+    --green: #1ea672;
+    --green-light: #e8f6f1;
     --yellow: #ca8a04;
     --yellow-light: #fef9c3;
-    --red: #dc2626;
-    --red-light: #fee2e2;
-    --gray: #64748b;
-    --gray-light: #f1f5f9;
-    --shadow: 0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
-    --shadow-lg: 0 8px 32px rgba(0,0,0,0.13);
-    --radius: 14px;
+    --red: #d24e4e;
+    --red-light: #fbeeee;
+    --gray: #6f6f6f;
+    --gray-light: #f1f1f1;
+    --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
+    --shadow-lg: 0 8px 32px rgba(17, 17, 17, 0.13);
+    --radius: 16px;
     --radius-sm: 8px;
-    --font: 'DM Sans', sans-serif;
+    --font: 'Montserrat', sans-serif;
     --mono: 'JetBrains Mono', monospace;
   }
 
@@ -40,11 +63,11 @@
   .sidebar {
     width: 230px; min-height: 100vh; background: var(--sidebar-bg);
     display: flex; flex-direction: column; padding: 28px 0;
-    position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+    position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; border-right: 1px solid var(--border);
   }
   .sidebar-brand { padding: 0 24px 32px; }
-  .sidebar-brand .brand-title { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.3px; }
-  .sidebar-brand .brand-sub { font-size: 11.5px; color: #5a6480; margin-top: 2px; }
+  .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
+  .sidebar-brand .brand-sub { display: none; }
   .sidebar-nav { flex: 1; }
   .nav-item {
     display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px;
@@ -52,24 +75,24 @@
     transition: all 0.18s; border-left: 3px solid transparent; margin: 1px 0;
     text-decoration: none;
   }
-  .nav-item:hover { background: rgba(255,255,255,0.05); color: #fff; }
-  .nav-item.active { background: var(--sidebar-active); color: #fff; border-radius: 0 8px 8px 0; margin-right: 12px; }
+  .nav-item:hover { background: #fafafa; color: var(--black); }
+  .nav-item.active { background: var(--sidebar-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
   .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-  .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid #1e2535; margin-top: 16px; }
-  .nav-logout { display: flex; align-items: center; gap: 10px; color: #5a6480; cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
+  .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
+  .nav-logout { display: flex; align-items: center; gap: 10px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
   .nav-logout:hover { color: var(--red); }
 
   .main { margin-left: 230px; flex: 1; padding: 36px 40px; min-height: 100vh; }
 
   .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
   .btn-export {
-    display: flex; align-items: center; gap: 8px; background: var(--blue);
+    display: flex; align-items: center; gap: 8px; background: var(--black);
     color: #fff; border: none; border-radius: var(--radius-sm); padding: 11px 20px;
     font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: var(--font);
-    box-shadow: 0 2px 8px rgba(37,99,235,0.25); transition: all 0.18s;
+    box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
   }
-  .btn-export:hover { background: #1d4ed8; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(37,99,235,0.35); }
+  .btn-export:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(17,17,17,0.35); }
 
   .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
   .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); }
@@ -330,12 +353,12 @@
     </a>
   </nav>
   <div class="sidebar-bottom">
-    <div class="nav-logout">
+    <a href="../config/logout.php" class="nav-logout" style="text-decoration: none;">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
         <path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
       </svg>
       Logout
-    </div>
+    </a>
   </div>
 </aside>
 
@@ -355,17 +378,6 @@
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" stroke-width="2"/><path stroke-width="2" stroke-linecap="round" d="M21 21l-4.35-4.35"/></svg>
       <input type="text" class="search-input" id="searchInput" placeholder="Cari pelanggan..." oninput="filterCustomers()">
     </div>
-    <select class="filter-select" id="statusFilter" onchange="filterCustomers()">
-      <option value="">Semua Status</option>
-      <option value="aktif">Aktif</option>
-      <option value="diblokir">Diblokir</option>
-    </select>
-    <select class="filter-select" id="sortFilter" onchange="filterCustomers()">
-      <option value="name">Urutkan: Nama</option>
-      <option value="orders">Urutkan: Pesanan Terbanyak</option>
-      <option value="spent">Urutkan: Pengeluaran Terbesar</option>
-      <option value="joined">Urutkan: Terbaru Bergabung</option>
-    </select>
   </div>
 
   <div class="customers-grid" id="customersGrid"></div>
@@ -404,78 +416,7 @@
 </div>
 
 <script>
-let customers = [
-  {
-    id: 'PLGN-0001', name: 'Budi Santoso', emoji: '🧑', email: 'budi@example.com',
-    phone: '+62 812 3456 7890', location: 'Jakarta, Indonesia', joined: '15 Jan 2025',
-    orders: 12, spent: 45600000, status: 'aktif', blockReason: '', blockNote: '',
-    orderHistory: [
-      { id: '#PSN-001', date: '15 Apr 2026', amount: 1455000, status: 'completed' },
-      { id: '#PSN-008', date: '22 Mar 2026', amount: 22500000, status: 'completed' },
-      { id: '#PSN-015', date: '10 Feb 2026', amount: 950000, status: 'completed' },
-    ]
-  },
-  {
-    id: 'PLGN-0002', name: 'Siti Rahayu', emoji: '👩', email: 'siti@example.com',
-    phone: '+62 813 2345 6789', location: 'Bandung, Indonesia', joined: '20 Feb 2025',
-    orders: 8, spent: 32500000, status: 'aktif', blockReason: '', blockNote: '',
-    orderHistory: [
-      { id: '#PSN-002', date: '16 Apr 2026', amount: 22500000, status: 'processing' },
-      { id: '#PSN-009', date: '01 Mar 2026', amount: 9800000, status: 'completed' },
-    ]
-  },
-  {
-    id: 'PLGN-0003', name: 'Agus Wijaya', emoji: '🧔', email: 'agus@example.com',
-    phone: '+62 821 9876 5432', location: 'Surabaya, Indonesia', joined: '10 Nov 2024',
-    orders: 15, spent: 78900000, status: 'aktif', blockReason: '', blockNote: '',
-    orderHistory: [
-      { id: '#PSN-003', date: '17 Apr 2026', amount: 3800000, status: 'pending' },
-      { id: '#PSN-010', date: '15 Mar 2026', amount: 18500000, status: 'completed' },
-      { id: '#PSN-016', date: '28 Jan 2026', amount: 1750000, status: 'completed' },
-    ]
-  },
-  {
-    id: 'PLGN-0004', name: 'Dewi Kusuma', emoji: '👱‍♀️', email: 'dewi@example.com',
-    phone: '+62 857 1234 5678', location: 'Medan, Indonesia', joined: '05 Mar 2025',
-    orders: 5, spent: 27400000, status: 'aktif', blockReason: '', blockNote: '',
-    orderHistory: [
-      { id: '#PSN-004', date: '17 Apr 2026', amount: 18500000, status: 'completed' },
-    ]
-  },
-  {
-    id: 'PLGN-0005', name: 'Hendra Pratama', emoji: '🧑‍💼', email: 'hendra@example.com',
-    phone: '+62 878 5678 1234', location: 'Yogyakarta, Indonesia', joined: '20 Agu 2024',
-    orders: 21, spent: 112000000, status: 'aktif', blockReason: '', blockNote: '',
-    orderHistory: [
-      { id: '#PSN-005', date: '18 Apr 2026', amount: 5150000, status: 'shipped' },
-      { id: '#PSN-011', date: '25 Feb 2026', amount: 22500000, status: 'completed' },
-    ]
-  },
-  {
-    id: 'PLGN-0006', name: 'Rina Melati', emoji: '👸', email: 'rina@example.com',
-    phone: '+62 895 4321 8765', location: 'Bandung, Indonesia', joined: '01 Des 2024',
-    orders: 3, spent: 9800000, status: 'diblokir', blockReason: 'Penipuan / Fraud', blockNote: 'Melakukan chargeback palsu sebanyak 3 kali.',
-    orderHistory: [
-      { id: '#PSN-006', date: '18 Apr 2026', amount: 9800000, status: 'cancelled' },
-    ]
-  },
-  {
-    id: 'PLGN-0007', name: 'Fajar Nugroho', emoji: '🧑‍🎨', email: 'fajar@example.com',
-    phone: '+62 812 8765 4321', location: 'Semarang, Indonesia', joined: '01 Apr 2025',
-    orders: 2, spent: 2850000, status: 'aktif', blockReason: '', blockNote: '',
-    orderHistory: [
-      { id: '#PSN-007', date: '19 Apr 2026', amount: 2850000, status: 'processing' },
-    ]
-  },
-  {
-    id: 'PLGN-0008', name: 'Fitri Handayani', emoji: '👩‍🦰', email: 'fitri@example.com',
-    phone: '+62 838 1111 2222', location: 'Makassar, Indonesia', joined: '14 Sep 2024',
-    orders: 7, spent: 41500000, status: 'diblokir', blockReason: 'Spam / Penyalahgunaan', blockNote: 'Mengirim ribuan request palsu ke sistem.',
-    orderHistory: [
-      { id: '#PSN-020', date: '10 Mar 2026', amount: 22500000, status: 'completed' },
-    ]
-  },
-];
+  let customers = <?php echo json_encode($customers); ?>;
 
 const statusOrderLabel = {
   completed: 'Selesai',
@@ -495,70 +436,48 @@ function fmt(val) {
 
 function renderStats() {
   const total = customers.length;
-  const active = customers.filter(c => c.status === 'aktif').length;
-  const blocked = customers.filter(c => c.status === 'diblokir').length;
-  const revenue = customers.reduce((s, c) => s + c.spent, 0);
+
   document.getElementById('statsRow').innerHTML = `
-    <div class="stat-card"><div class="stat-label">Total Pelanggan</div><div class="stat-value blue">${total}</div></div>
-    <div class="stat-card"><div class="stat-label">Aktif</div><div class="stat-value green">${active}</div></div>
-    <div class="stat-card"><div class="stat-label">Diblokir</div><div class="stat-value red">${blocked}</div></div>
-    <div class="stat-card"><div class="stat-label">Total Pendapatan</div><div class="stat-value green" style="font-size:16px">${fmt(revenue)}</div></div>
+    <div class="stat-card">
+      <div class="stat-label">Total Pelanggan</div>
+      <div class="stat-value blue">${total}</div>
+    </div>
   `;
 }
 
 function renderGrid() {
   const grid = document.getElementById('customersGrid');
+
   if (filteredCustomers.length === 0) {
     grid.innerHTML = `<div class="empty-state">
-      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke-width="1.5"/><path stroke-width="1.5" d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       <p>Tidak ada pelanggan ditemukan</p>
     </div>`;
     return;
   }
+
   grid.innerHTML = filteredCustomers.map(c => `
-    <div class="customer-card ${c.status === 'diblokir' ? 'blocked' : ''}" id="card-${c.id}">
-      ${c.status === 'diblokir' ? '<div class="blocked-ribbon">Diblokir</div>' : ''}
+    <div class="customer-card">
       <div class="card-header">
         <div class="customer-info">
-          <div class="avatar ${c.status === 'diblokir' ? 'blocked-av' : ''}">${c.emoji}</div>
+          <div class="avatar">👤</div>
           <div>
             <div class="customer-name">${c.name}</div>
-            <div class="customer-id">Pelanggan #${c.id.split('-')[1]}</div>
+            <div class="customer-id">ID: ${c.id}</div>
           </div>
         </div>
-        <button class="view-btn" onclick="openModal('${c.id}')" title="Lihat Detail">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        <button class="view-btn" onclick="openModal('${c.id}')">
+          👁
         </button>
       </div>
+
       <div class="card-contacts">
-        <div class="contact-row">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-          ${c.email}
-        </div>
-        <div class="contact-row">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-          ${c.phone}
-        </div>
-        <div class="contact-row">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          ${c.location}
-        </div>
+        <div class="contact-row">📧 ${c.email}</div>
+        <div class="contact-row">Role: ${c.role}</div>
       </div>
-      <div class="card-divider"></div>
-      <div class="card-stats">
-        <div>
-          <div class="cstat-label">Total Pesanan</div>
-          <div class="cstat-value">${c.orders}</div>
-        </div>
-        <div>
-          <div class="cstat-label">Total Belanja</div>
-          <div class="cstat-value green" style="font-size:13px">${fmt(c.spent)}</div>
-        </div>
-      </div>
+
       <div class="card-footer">
-        <span class="joined-date">Bergabung: ${c.joined}</span>
-        <span class="status-badge ${c.status}">
-          <span class="status-dot"></span>${c.status === 'aktif' ? 'Aktif' : 'Diblokir'}
+        <span class="joined-date">
+          Bergabung: ${c.created_at}
         </span>
       </div>
     </div>
@@ -567,107 +486,62 @@ function renderGrid() {
 
 function filterCustomers() {
   const q = document.getElementById('searchInput').value.toLowerCase();
-  const st = document.getElementById('statusFilter').value;
-  const sort = document.getElementById('sortFilter').value;
+
   filteredCustomers = customers.filter(c => {
-    const matchQ = !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q) || c.id.toLowerCase().includes(q) || c.location.toLowerCase().includes(q);
-    const matchSt = !st || c.status === st;
-    return matchQ && matchSt;
+    return !q || 
+      c.name.toLowerCase().includes(q) || 
+      c.email.toLowerCase().includes(q) || 
+      c.id.toString().includes(q);
   });
-  if (sort === 'orders') filteredCustomers.sort((a, b) => b.orders - a.orders);
-  else if (sort === 'spent') filteredCustomers.sort((a, b) => b.spent - a.spent);
-  else if (sort === 'joined') filteredCustomers.sort((a, b) => b.id.localeCompare(a.id));
-  else filteredCustomers.sort((a, b) => a.name.localeCompare(b.name));
+
   renderGrid();
 }
 
 function openModal(customerId) {
-  activeCustomerId = customerId;
-  const c = customers.find(x => x.id === customerId);
-  document.getElementById('modalTitle').textContent = 'Detail Pelanggan';
+  const c = customers.find(x => x.id == customerId);
 
-  const isBlocked = c.status === 'diblokir';
   document.getElementById('modalBody').innerHTML = `
     <div class="modal-profile">
-      <div class="modal-avatar">${c.emoji}</div>
+      <div class="modal-avatar">👤</div>
       <div>
         <div class="modal-name">${c.name}</div>
-        <div class="modal-cid">${c.id}</div>
-        <div class="modal-status-wrap">
-          <span class="status-badge ${c.status}">
-            <span class="status-dot"></span>${c.status === 'aktif' ? 'Aktif' : 'Diblokir'}
-          </span>
-        </div>
+        <div class="modal-cid">ID: ${c.id}</div>
       </div>
     </div>
 
     <div class="detail-grid">
-      <div class="detail-item"><label>Email</label><div class="val" style="font-size:13px">${c.email}</div></div>
-      <div class="detail-item"><label>Telepon</label><div class="val">${c.phone}</div></div>
-      <div class="detail-item"><label>Lokasi</label><div class="val">${c.location}</div></div>
-      <div class="detail-item"><label>Bergabung</label><div class="val">${c.joined}</div></div>
-      <div class="detail-item"><label>Total Pesanan</label><div class="val">${c.orders}</div></div>
-      <div class="detail-item"><label>Total Belanja</label><div class="val green" style="font-size:13px">${fmt(c.spent)}</div></div>
+      <div class="detail-item">
+        <label>Email</label>
+        <div class="val">${c.email}</div>
+      </div>
+
+      <div class="detail-item">
+        <label>Role</label>
+        <div class="val">${c.role}</div>
+      </div>
+
+      <div class="detail-item">
+        <label>Bergabung</label>
+        <div class="val">${c.created_at}</div>
+      </div>
     </div>
 
-    <div style="height:1px;background:var(--border);margin-bottom:18px"></div>
-    <div class="section-title">Riwayat Pesanan Terbaru</div>
-    <div class="order-list">
-      ${c.orderHistory.map(o => `
-        <div class="order-row">
-          <span class="order-row-id">${o.id}</span>
-          <span class="order-row-date">${o.date}</span>
-          <span class="order-row-amount">${fmt(o.amount)}</span>
-          <span class="status-badge ${o.status}" style="font-size:11px;padding:2px 8px">${statusOrderLabel[o.status] || o.status}</span>
-        </div>
-      `).join('')}
-    </div>
-
-    <div style="height:1px;background:var(--border);margin-bottom:18px"></div>
-    <div class="section-title">Manajemen Akun</div>
-
-    <div class="block-section ${isBlocked ? 'is-blocked' : ''}" id="blockSection">
-      ${isBlocked ? `
-        <div class="block-header">
-          <div class="block-info">
-            <div class="block-title">🔒 Akun Diblokir</div>
-            <div class="block-desc red">Alasan: ${c.blockReason}</div>
-            ${c.blockNote ? `<div class="block-desc" style="margin-top:3px;font-size:12px">${c.blockNote}</div>` : ''}
-          </div>
-          <button class="btn-block do-unblock" onclick="promptUnblock('${c.id}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/></svg>
-            Buka Blokir
-          </button>
-        </div>
-      ` : `
-        <div class="block-header">
-          <div class="block-info">
-            <div class="block-title">Blokir Akun</div>
-            <div class="block-desc">Pelanggan tidak bisa login & bertransaksi setelah diblokir.</div>
-          </div>
-          <button class="btn-block do-block" onclick="showBlockForm('${c.id}')">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-            Blokir Akun
-          </button>
-        </div>
-        <div class="block-reason-wrap" id="blockForm" style="display:none">
-          <label>Alasan Pemblokiran</label>
-          <select class="block-reason-select" id="blockReasonSel">
-            <option value="">-- Pilih alasan --</option>
-            <option>Penipuan / Fraud</option>
-            <option>Spam / Penyalahgunaan</option>
-            <option>Pelanggaran Ketentuan</option>
-            <option>Permintaan Pelanggan</option>
-            <option>Aktivitas Mencurigakan</option>
-            <option>Lainnya</option>
-          </select>
-          <textarea class="block-note-input" id="blockNoteInput" placeholder="Catatan tambahan (opsional)..."></textarea>
-          <button class="btn-confirm-block" onclick="submitBlock('${c.id}')">🚫 Konfirmasi Blokir Akun</button>
-        </div>
-      `}
-    </div>
+    <button onclick="deleteUser(${c.id})" style="margin-top:15px;background:red;color:#fff;padding:10px;border:none;border-radius:6px;cursor:pointer">
+      Hapus User
+    </button>
   `;
+
   document.getElementById('modalOverlay').classList.add('open');
+}
+
+function deleteUser(id) {
+  if (!confirm("Yakin hapus user ini?")) return;
+
+  fetch('delete_user.php?id=' + id)
+    .then(res => res.text())
+    .then(() => {
+      location.reload();
+    });
 }
 
 function showBlockForm(id) {
