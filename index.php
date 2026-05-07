@@ -513,6 +513,11 @@ function productImage(string $url): string
                             <circle cx="17.5" cy="19" r="1.2" fill="currentColor" />
                         </svg>
                     </a>
+                    <a class="cart-icon" href="src/config/logout.php" aria-label="Logout" style="color: #d24e4e;">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                    </a>
                 <?php else: ?>
                     <div class="auth-links">
                         <a class="masuk" href="src/user/login.php">Masuk</a>
