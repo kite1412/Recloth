@@ -32,7 +32,7 @@ if ($cart) {
             ci.quantity, 
             p.name, 
             p.price, 
-            " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('/src/admin/', p.image), p.image)" : "''") . " AS image,
+            " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('../admin/', p.image), p.image)" : "''") . " AS image,
             c.name AS category_name
         FROM cart_items ci
         JOIN products p ON ci.product_id = p.id
@@ -49,20 +49,42 @@ if ($cart) {
     }
 }
 
+// Ambil daftar alamat user
+$stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC");
+$stmt->execute([$userId]);
+$addresses = $stmt->fetchAll();
+
 $paymentAddress = null;
 $selectedPaymentMethod = null;
 $errorMsg = null;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
     $paymentMethod = $_POST['payment_method'] ?? '';
+    $addressId = $_POST['address_id'] ?? '';
+
+    // Validasi alamat
+    $selectedAddressText = '';
+    if (empty($addressId)) {
+        $errorMsg = "Silakan pilih alamat pengiriman.";
+    } else {
+        foreach ($addresses as $addr) {
+            if ($addr['id'] == $addressId) {
+                $selectedAddressText = $addr['label'] . ": " . $addr['address'];
+                break;
+            }
+        }
+        if (empty($selectedAddressText)) {
+            $errorMsg = "Alamat tidak valid.";
+        }
+    }
     
-    if (in_array($paymentMethod, ['bni', 'bca', 'bri', 'gopay'])) {
+    if (!$errorMsg && in_array($paymentMethod, ['bni', 'bca', 'bri', 'gopay'])) {
         try {
             $pdo->beginTransaction();
             
             // Create order
-            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, status, payment_method) VALUES (?, ?, 'pending', ?)");
-            $stmt->execute([$userId, $totalPrice, $paymentMethod]);
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, status, payment_method, address) VALUES (?, ?, 'pending', ?, ?)");
+            $stmt->execute([$userId, $totalPrice, $paymentMethod, $selectedAddressText]);
             $orderId = $pdo->lastInsertId();
             
             // Create order items
@@ -708,10 +730,10 @@ function e($text): string {
             <ul class="menu">
                 <li><a href="../../index.php">Beranda</a></li>
                 <li><a href="catalog.php">Katalog</a></li>
-                <li><a href="catalog.php">Kategori</a></li>
+                <li><a href="category.php">Kategori</a></li>
             </ul>
             <div class="nav-actions">
-                <a class="cart-icon" href="cart.php" aria-label="Keranjang">
+                <a class="cart-icon" href="cart.php?tab=cart" aria-label="Keranjang">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
                         <circle cx="9.5" cy="19" r="1.2" fill="currentColor" />
@@ -771,6 +793,31 @@ function e($text): string {
                 </div>
 
                 <div class="payment-methods">
+                    <h3>Alamat Pengiriman</h3>
+                    <div class="address-selection" style="margin-bottom: 32px;">
+                        <?php if (empty($addresses)): ?>
+                            <div style="padding: 16px; background: #fff1f2; border: 1px solid #fda4af; border-radius: 12px; font-size: 14px;">
+                                <p style="color: #be123c; font-weight: 600; margin-bottom: 8px;">Kamu belum memiliki alamat pengiriman.</p>
+                                <a href="profile.php" style="color: #111; font-weight: 700; text-decoration: underline;">Tambah Alamat di Profil</a>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($addresses as $addr): ?>
+                                <label class="payment-method" style="padding: 16px; align-items: flex-start; cursor: pointer;">
+                                    <input type="radio" name="address_id" value="<?= $addr['id'] ?>" <?= $addr['is_default'] ? 'checked' : '' ?> style="margin-top: 4px;">
+                                    <div style="flex: 1;">
+                                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                            <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;"><?= e($addr['label']) ?></span>
+                                            <?php if ($addr['is_default']): ?>
+                                                <span style="background: #111; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 999px;">UTAMA</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <p style="font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5;"><?= nl2br(e($addr['address'])) ?></p>
+                                    </div>
+                                </label>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+
                     <h3>Metode Pembayaran</h3>
                     
                     <h4 class="payment-group-title">Transfer Bank</h4>
@@ -886,7 +933,7 @@ function e($text): string {
             <p class="expiry-text">Selesaikan sebelum: <?= e(date('d M Y, H:i', strtotime('+1 day'))) ?></p>
             
             <div class="modal-actions">
-                <a href="../../index.php" class="btn-primary">Kembali ke Beranda</a>
+                <a href="cart.php?tab=orders" class="btn-primary">Kembali ke Keranjang</a>
             </div>
         </div>
     </div>

@@ -17,7 +17,7 @@ $userId = $_SESSION['user_id'];
 
 // Ambil data user terbaru dari database
 try {
-    $stmt = $pdo->prepare("SELECT name, email, address FROM users WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT name, email FROM users WHERE id = ?");
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
 
@@ -26,6 +26,11 @@ try {
         header('Location: login.php');
         exit;
     }
+
+    // Ambil daftar alamat
+    $stmt = $pdo->prepare("SELECT * FROM user_addresses WHERE user_id = ? ORDER BY is_default DESC, created_at DESC");
+    $stmt->execute([$userId]);
+    $addresses = $stmt->fetchAll();
 } catch (PDOException $e) {
     die("Terjadi kesalahan: " . $e->getMessage());
 }
@@ -141,7 +146,7 @@ $title = "Profil Saya - Recloth";
             <a href="../../index.php" class="brand-font text-3xl text-black">Recloth</a>
             
             <div class="flex items-center gap-4">
-                <a href="cart.php" class="cart-icon" aria-label="Keranjang">
+                <a href="cart.php?tab=cart" class="cart-icon" aria-label="Keranjang">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                         <circle cx="9.5" cy="19" r="1.2" fill="currentColor"/>
@@ -200,7 +205,7 @@ $title = "Profil Saya - Recloth";
                     <p class="text-sm text-gray-500 mb-6"><?= htmlspecialchars($user['email']) ?></p>
                     
                     <div class="w-full pt-6 border-t border-gray-100 space-y-4">
-                        <a href="cart.php" class="flex items-center justify-between text-sm font-semibold text-gray-700 hover:text-black transition-colors group">
+                        <a href="cart.php?tab=orders" class="flex items-center justify-between text-sm font-semibold text-gray-700 hover:text-black transition-colors group">
                             <span>Pesanan Saya</span>
                             <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -210,9 +215,16 @@ $title = "Profil Saya - Recloth";
                 </div>
             </div>
 
-            <!-- Edit Form -->
-            <div class="md:col-span-2">
+            <!-- Edit Form & Addresses -->
+            <div class="md:col-span-2 space-y-8">
+                <!-- Info Personal -->
                 <div class="profile-card p-8 sm:p-10">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Informasi Pribadi
+                    </h2>
                     <form action="../config/update_profile.php" method="POST" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6">
                             <div class="space-y-1.5">
@@ -238,23 +250,11 @@ $title = "Profil Saya - Recloth";
                                 >
                                 <p class="text-xs text-gray-500 mt-1">Email tidak dapat diubah.</p>
                             </div>
-
-                            <div class="space-y-1.5">
-                                <label for="address" class="block text-sm font-semibold text-gray-700">Alamat Pengiriman</label>
-                                <textarea
-                                    id="address"
-                                    name="address"
-                                    rows="4"
-                                    placeholder="Masukkan alamat lengkap Anda..."
-                                    class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-gray-900 outline-none resize-none"
-                                    required
-                                ><?= htmlspecialchars($user['address'] ?? '') ?></textarea>
-                            </div>
                         </div>
 
                         <div class="pt-4">
                             <button type="submit" class="btn-update w-full rounded-xl py-4 text-sm font-bold text-white shadow-lg flex justify-center items-center gap-2 group">
-                                <span>Simpan Perubahan</span>
+                                <span>Simpan Nama</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
@@ -262,9 +262,96 @@ $title = "Profil Saya - Recloth";
                         </div>
                     </form>
                 </div>
+
+                <!-- Daftar Alamat -->
+                <div class="profile-card p-8 sm:p-10">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                            Alamat Pengiriman
+                        </h2>
+                        <button onclick="document.getElementById('addressModal').classList.remove('hidden')" class="text-sm font-bold text-black hover:underline flex items-center gap-1">
+                            <span>+ Tambah Alamat</span>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <?php if (empty($addresses)): ?>
+                            <div class="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                <p class="text-gray-500 text-sm">Belum ada alamat yang tersimpan.</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($addresses as $addr): ?>
+                                <div class="p-5 rounded-2xl border <?= $addr['is_default'] ? 'border-black bg-gray-50' : 'border-gray-100' ?> flex justify-between items-start gap-4">
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs font-bold uppercase tracking-wider text-gray-900"><?= htmlspecialchars($addr['label']) ?></span>
+                                            <?php if ($addr['is_default']): ?>
+                                                <span class="bg-black text-white text-[10px] px-2 py-0.5 rounded-full font-bold">UTAMA</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <p class="text-sm text-gray-600 leading-relaxed"><?= nl2br(htmlspecialchars($addr['address'])) ?></p>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <?php if (!$addr['is_default']): ?>
+                                            <form action="../config/address_actions.php" method="POST" class="inline">
+                                                <input type="hidden" name="action" value="set_default">
+                                                <input type="hidden" name="address_id" value="<?= $addr['id'] ?>">
+                                                <button type="submit" class="text-xs font-bold text-gray-400 hover:text-black transition-colors">Utamakan</button>
+                                            </form>
+                                        <?php endif; ?>
+                                        <form action="../config/address_actions.php" method="POST" class="inline" onsubmit="return confirm('Hapus alamat ini?')">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="address_id" value="<?= $addr['id'] ?>">
+                                            <button type="submit" class="text-xs font-bold text-red-400 hover:text-red-600 transition-colors">Hapus</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Modal Tambah Alamat -->
+    <div id="addressModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold">Tambah Alamat Baru</h3>
+                <button onclick="document.getElementById('addressModal').classList.add('hidden')" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l18 18"></path>
+                    </svg>
+                </button>
+            </div>
+            <form action="../config/address_actions.php" method="POST" class="space-y-6">
+                <input type="hidden" name="action" value="add">
+                <div class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-gray-700">Label Alamat</label>
+                        <input type="text" name="label" placeholder="Rumah, Kantor, dll" class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm" required>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-gray-700">Alamat Lengkap</label>
+                        <textarea name="address" rows="4" placeholder="Jl. Contoh No. 123..." class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm resize-none" required></textarea>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 rounded border-gray-300">
+                        <label for="is_default" class="text-sm font-medium text-gray-600">Jadikan alamat utama</label>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-bold text-sm shadow-xl hover:translate-y-[-2px] transition-all">
+                    Simpan Alamat
+                </button>
+            </form>
+        </div>
+    </div>
+
 
     <footer class="max-w-4xl mx-auto px-6 py-12 text-center text-gray-400 text-sm">
         <p>&copy; <?= date('Y') ?> Recloth. Semua hak dilindungi.</p>

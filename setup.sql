@@ -10,9 +10,19 @@ CREATE TABLE users (
   name VARCHAR(255),
   email VARCHAR(255) UNIQUE,
   password VARCHAR(255),
-  address TEXT NULL,
   role VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- USER ADDRESSES
+CREATE TABLE user_addresses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  label VARCHAR(50) DEFAULT 'Rumah',
+  address TEXT NOT NULL,
+  is_default TINYINT(1) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 -- CATEGORIES
@@ -82,6 +92,7 @@ CREATE TABLE orders (
   status VARCHAR(50),
   payment_method VARCHAR(100),
   payment_address VARCHAR(1000),
+  address TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id)
     ON DELETE CASCADE

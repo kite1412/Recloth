@@ -100,7 +100,7 @@ $sql = "
         ci.quantity, 
         p.name, 
         p.price, 
-        " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('/src/admin/', p.image), p.image)" : "''") . " AS image,
+        " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('../admin/', p.image), p.image)" : "''") . " AS image,
         c.name AS category_name
     FROM cart_items ci
     JOIN products p ON ci.product_id = p.id
@@ -113,7 +113,7 @@ $cartItems = $stmt->fetchAll();
 
 // Fetch Pesanan Saya (User Orders)
 $stmt = $pdo->prepare("
-    SELECT id, total_price, status, created_at, payment_method, payment_address 
+    SELECT id, total_price, status, created_at, payment_method, payment_address, address
     FROM orders 
     WHERE user_id = ? 
     ORDER BY created_at DESC
@@ -128,7 +128,7 @@ $authHeader = 'Authorization: Basic ' . base64_encode($serverKey . ':');
 
 $userOrders = [];
 $stmtItems = $pdo->prepare("
-    SELECT oi.quantity, oi.price, p.name, " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('/src/admin/', p.image), p.image)" : "''") . " AS image
+    SELECT oi.quantity, oi.price, p.name, " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('../admin/', p.image), p.image)" : "''") . " AS image
     FROM order_items oi
     JOIN products p ON oi.product_id = p.id
     WHERE oi.order_id = ?
@@ -618,6 +618,63 @@ function e($text): string
                 gap: 14px;
             }
         }
+
+        /* Tabs Styles */
+        .tabs-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 6px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            width: fit-content;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab-btn:hover {
+            color: var(--black);
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .tab-btn.active {
+            color: var(--white);
+            background: var(--black);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .cart-layout.orders-active {
+            grid-template-columns: 1fr;
+        }
+
+        .cart-layout.orders-active .cart-summary {
+            display: none;
+        }
     </style>
 </head>
 
@@ -628,11 +685,11 @@ function e($text): string
             <ul class="menu">
                 <li><a href="../../index.php">Beranda</a></li>
                 <li><a href="catalog.php">Katalog</a></li>
-                <li><a href="catalog.php">Kategori</a></li>
+                <li><a href="category.php">Kategori</a></li>
             </ul>
             <div class="nav-actions">
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a class="cart-icon" href="cart.php" aria-label="Keranjang">
+                    <a class="cart-icon" href="cart.php?tab=cart" aria-label="Keranjang">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path d="M3 4H5L7.3 14.2C7.5 15.1 8.3 15.8 9.2 15.8H17.8C18.7 15.8 19.5 15.1 19.7 14.2L21 8H6"
                                 stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
@@ -666,17 +723,31 @@ function e($text): string
             Keranjang
         </p>
 
-        <div class="cart-layout">
+        <div class="tabs-nav">
+            <button class="tab-btn active" onclick="switchTab('cart')">
+                Keranjang (<?= count($cartItems) ?>)
+            </button>
+            <button class="tab-btn" onclick="switchTab('orders')">
+                Pesanan Saya (<?= count($userOrders) ?>)
+            </button>
+        </div>
+
+        <div id="cartLayout" class="cart-layout">
             <div class="main-column">
-                <?php if (!empty($userOrders)): ?>
-                    <section class="cart-box" style="margin-bottom: 24px;">
-                        <h2>Pesanan Saya</h2>
+                <!-- Tab: Orders -->
+                <div id="ordersPane" class="tab-pane">
+                    <?php if (empty($userOrders)): ?>
+                        <div class="cart-box">
+                            <div class="empty-cart">
+                                <p>Kamu belum memiliki riwayat pesanan.</p>
+                                <a href="catalog.php">Mulai Belanja</a>
+                            </div>
+                        </div>
+                    <?php else: ?>
                         <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
                             <?php foreach ($userOrders as $order): ?>
-                                <div class="order-card"
-                                    style="border: 1px solid var(--line); border-radius: 12px; padding: 16px;">
-                                    <div
-                                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
+                                <div class="order-card" style="background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px;">
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
                                         <span style="font-size: 14px; font-weight: 700;">Order #<?= $order['id'] ?></span>
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <?php
@@ -700,8 +771,7 @@ function e($text): string
                                                 $statusLabel = ucfirst($order['status']);
                                             }
                                             ?>
-                                            <span
-                                                style="font-size: 11px; padding: 4px 10px; background: <?= $statusBg ?>; color: <?= $statusColor ?>; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <span style="font-size: 11px; padding: 4px 10px; background: <?= $statusBg ?>; color: <?= $statusColor ?>; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                                                 <?= e($statusLabel) ?>
                                             </span>
                                             <?php if ($order['status'] === 'pending'): ?>
@@ -712,39 +782,37 @@ function e($text): string
                                         </div>
                                     </div>
 
-                                    <div class="order-items-preview"
-                                        style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
+                                    <div class="order-items-preview" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
                                         <?php foreach ($order['items'] as $oi): ?>
                                             <div style="display: flex; gap: 12px; align-items: center;">
-                                                <div
-                                                    style="width: 50px; height: 60px; border-radius: 6px; background: #f1f1f1; overflow: hidden; flex-shrink: 0;">
+                                                <div style="width: 50px; height: 60px; border-radius: 6px; background: #f1f1f1; overflow: hidden; flex-shrink: 0;">
                                                     <?php if (!empty($oi['image'])): ?>
-                                                        <img src="<?= e($oi['image']) ?>" alt="<?= e($oi['name']) ?>"
-                                                            style="width: 100%; height: 100%; object-fit: cover;">
+                                                        <img src="<?= e($oi['image']) ?>" alt="<?= e($oi['name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
                                                     <?php else: ?>
-                                                        <div
-                                                            style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #888;">
-                                                            Tanpa Gambar</div>
+                                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #888;">Tanpa Gambar</div>
                                                     <?php endif; ?>
                                                 </div>
                                                 <div style="flex: 1;">
-                                                    <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 4px;">
-                                                        <?= e($oi['name']) ?></h4>
-                                                    <p style="font-size: 12px; color: var(--muted);"><?= e($oi['quantity']) ?> x
-                                                        <?= rupiah($oi['price']) ?></p>
+                                                    <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 4px;"><?= e($oi['name']) ?></h4>
+                                                    <p style="font-size: 12px; color: var(--muted);"><?= e($oi['quantity']) ?> x <?= rupiah($oi['price']) ?></p>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
                                     </div>
 
-                                    <div
-                                        style="display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 12px;">
+                                    <div style="display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); border-top: 1px dashed var(--line); padding-top: 12px;">
                                         <span><?= date('d M Y, H:i', strtotime($order['created_at'])) ?></span>
-                                        <span style="font-weight: 700; color: var(--black);">Total:
-                                            <?= rupiah($order['total_price']) ?></span>
+                                        <span style="font-weight: 700; color: var(--black);">Total: <?= rupiah($order['total_price']) ?></span>
                                     </div>
+                                    
                                     <?php if (!empty($order['payment_method'])): ?>
                                         <div style="margin-top: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--line); border-radius: 8px; font-size: 13px;">
+                                            <?php if (!empty($order['address'])): ?>
+                                                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line);">
+                                                    <span style="color: var(--muted); display: block; margin-bottom: 4px;">Alamat Pengiriman</span>
+                                                    <p style="font-weight: 500; color: var(--black); line-height: 1.4;"><?= nl2br(e($order['address'])) ?></p>
+                                                </div>
+                                            <?php endif; ?>
                                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                                 <span style="color: var(--muted);">Metode Pembayaran</span>
                                                 <span style="font-weight: 600; text-transform: uppercase;"><?= e($order['payment_method']) ?></span>
@@ -772,11 +840,13 @@ function e($text): string
                                 </div>
                             <?php endforeach; ?>
                         </div>
-                    </section>
-                <?php endif; ?>
+                    <?php endif; ?>
+                </div>
 
-                <section class="cart-box">
-                    <h2>Keranjang Belanja</h2>
+                <!-- Tab: Cart -->
+                <div id="cartPane" class="tab-pane active">
+                    <section class="cart-box">
+                        <h2>Keranjang Belanja</h2>
 
                     <?php if (empty($cartItems)): ?>
                         <div class="empty-cart">
@@ -815,64 +885,105 @@ function e($text): string
                             <?php endforeach; ?>
                         </div>
                     <?php endif; ?>
-                </section>
-            </div>
-
-            <aside class="cart-summary">
-                <h3>Ringkasan Pesanan</h3>
-                <div class="summary-row">
-                    <span class="label">Total Item</span>
-                    <span><?= e($totalItems) ?> barang</span>
-                </div>
-                <div class="summary-row">
-                    <span class="label">Total Harga</span>
-                    <span><?= rupiah($totalPrice) ?></span>
-                </div>
-                <div class="summary-row">
-                    <span class="label">Biaya Pengiriman</span>
-                    <span>Gratis</span>
-                </div>
-                <div class="summary-total">
-                    <span>Total Belanja</span>
-                    <span><?= rupiah($totalPrice) ?></span>
-                </div>
-                <?php if (!empty($cartItems)): ?>
-                    <a href="payment.php" class="checkout-btn">Lanjut ke Pembayaran</a>
-                <?php else: ?>
-                    <a href="catalog.php" class="checkout-btn"
-                        style="background:#e0e0e0;color:#888;pointer-events:none;">Lanjut ke Pembayaran</a>
-                <?php endif; ?>
-            </aside>
+            </section>
         </div>
+    </div> <!-- main-column closed -->
 
-        <footer>
-            <section>
-                <a class="brand" href="../../index.php">Recloth</a>
-                <p style="margin-top: 10px; max-width: 280px;">Recloth menyediakan pakaian thrift pilihan dengan
-                    kualitas terjamin dan harga terjangkau.</p>
-            </section>
-            <section>
-                <h5>Navigasi Belanja</h5>
-                <ul>
-                    <li>Katalog Produk</li>
-                    <li>Cari &amp; Filter Kategori</li>
-                    <li>Keranjang Belanja</li>
-                    <li>Checkout Pembayaran</li>
-                </ul>
-            </section>
-            <section>
-                <h5>Akun &amp; Bantuan</h5>
-                <ul>
-                    <li>Registrasi &amp; Login</li>
-                    <li>Konfirmasi Pesanan</li>
-                    <li>Layanan Pelanggan</li>
-                    <li>Kebijakan Privasi</li>
-                </ul>
-            </section>
-        </footer>
+    <aside class="cart-summary">
+        <h3>Ringkasan Pesanan</h3>
+        <div class="summary-row">
+            <span class="label">Total Item</span>
+            <span><?= e($totalItems) ?> barang</span>
+        </div>
+        <div class="summary-row">
+            <span class="label">Total Harga</span>
+            <span><?= rupiah($totalPrice) ?></span>
+        </div>
+        <div class="summary-row">
+            <span class="label">Biaya Pengiriman</span>
+            <span>Gratis</span>
+        </div>
+        <div class="summary-total">
+            <span>Total Belanja</span>
+            <span><?= rupiah($totalPrice) ?></span>
+        </div>
+        <?php if (!empty($cartItems)): ?>
+            <a href="payment.php" class="checkout-btn">Lanjut ke Pembayaran</a>
+        <?php else: ?>
+            <a href="catalog.php" class="checkout-btn"
+                style="background:#e0e0e0;color:#888;pointer-events:none;">Lanjut ke Pembayaran</a>
+        <?php endif; ?>
+    </aside>
+</div> <!-- cartLayout closed -->
 
-        <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
-    </div>
+    <footer>
+        <section>
+            <a class="brand" href="../../index.php">Recloth</a>
+            <p style="margin-top: 10px; max-width: 280px;">Recloth menyediakan pakaian thrift pilihan dengan
+                kualitas terjamin dan harga terjangkau.</p>
+        </section>
+        <section>
+            <h5>Navigasi Belanja</h5>
+            <ul>
+                <li>Katalog Produk</li>
+                <li>Cari &amp; Filter Kategori</li>
+                <li>Keranjang Belanja</li>
+                <li>Checkout Pembayaran</li>
+            </ul>
+        </section>
+        <section>
+            <h5>Akun &amp; Bantuan</h5>
+            <ul>
+                <li>Registrasi &amp; Login</li>
+                <li>Konfirmasi Pesanan</li>
+                <li>Layanan Pelanggan</li>
+                <li>Kebijakan Privasi</li>
+            </ul>
+        </section>
+    </footer>
+
+    <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
+</div>
+
+<script>
+    function switchTab(tab) {
+        const cartPane = document.getElementById('cartPane');
+        const ordersPane = document.getElementById('ordersPane');
+        const cartLayout = document.getElementById('cartLayout');
+        const btns = document.querySelectorAll('.tab-btn');
+
+        btns.forEach(btn => btn.classList.remove('active'));
+
+        if (tab === 'cart') {
+            cartPane.classList.add('active');
+            ordersPane.classList.remove('active');
+            cartLayout.classList.remove('orders-active');
+            btns[0].classList.add('active');
+        } else {
+            cartPane.classList.remove('active');
+            ordersPane.classList.add('active');
+            cartLayout.classList.add('orders-active');
+            btns[1].classList.add('active');
+        }
+
+        // Update URL parameter without reloading
+        const url = new URL(window.location);
+        url.searchParams.set('tab', tab);
+        window.history.replaceState({}, '', url);
+    }
+
+    // Auto switch to orders if redirected from payment or cancel
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('tab') === 'orders' || (urlParams.has('action') && urlParams.get('action') === 'cancel_order')) {
+        switchTab('orders');
+    } else if (urlParams.get('tab') === 'cart') {
+        switchTab('cart');
+    }
+</script>
+
+    <p class="copyright">Recloth © <?= date('Y') ?>. Semua Hak Dilindungi.</p>
+</div>
+
 </body>
 
 </html>

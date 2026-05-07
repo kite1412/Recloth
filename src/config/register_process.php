@@ -42,12 +42,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Insert user
     try {
-        $stmt = $pdo->prepare("INSERT INTO users (name, email, address, password, role) VALUES (?, ?, ?, ?, 'user')");
-        $stmt->execute([$name, $email, $address, $hashedPassword]);
-        
+        $pdo->beginTransaction();
+
+        $stmt = $pdo->prepare("INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, 'user')");
+        $stmt->execute([$name, $email, $hashedPassword]);
+        $userId = $pdo->lastInsertId();
+
+        // Insert address
+        $stmt = $pdo->prepare("INSERT INTO user_addresses (user_id, address, is_default) VALUES (?, ?, 1)");
+        $stmt->execute([$userId, $address]);
+
+        $pdo->commit();
         header("Location: ../user/register.php?success=" . urlencode("Pendaftaran berhasil! Silakan login."));
         exit;
     } catch (PDOException $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         header("Location: ../user/register.php?error=" . urlencode("Terjadi kesalahan sistem: " . $e->getMessage()));
         exit;
     }

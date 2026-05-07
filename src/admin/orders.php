@@ -72,7 +72,7 @@ while($row = $orders_query->fetch_assoc()) {
         'date' => $row['formatted_date'],
         'items' => $items,
         'status' => $mapped_status,
-        'address' => $row['payment_address'] ?: '-',
+        'address' => $row['address'] ?: '-',
         'payment' => $row['payment_method'] ?: '-'
     ];
 }

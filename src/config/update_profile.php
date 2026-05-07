@@ -11,18 +11,16 @@ if (!isset($_SESSION['user_id'])) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userId = $_SESSION['user_id'];
     $name = trim($_POST['name'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-
     // Validasi input
-    if (empty($name) || empty($address)) {
-        header("Location: ../user/profile.php?error=" . urlencode("Nama dan alamat tidak boleh kosong"));
+    if (empty($name)) {
+        header("Location: ../user/profile.php?error=" . urlencode("Nama tidak boleh kosong"));
         exit;
     }
 
     try {
         // Update data user
-        $stmt = $pdo->prepare("UPDATE users SET name = ?, address = ? WHERE id = ?");
-        $stmt->execute([$name, $address, $userId]);
+        $stmt = $pdo->prepare("UPDATE users SET name = ? WHERE id = ?");
+        $stmt->execute([$name, $userId]);
 
         // Update session name if changed
         $_SESSION['user_name'] = $name;
