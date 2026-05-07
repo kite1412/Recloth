@@ -1,23 +1,5 @@
 <?php
-// ══════════════════════════════════════════════════════════════════
-//  Konfigurasi Database
-// ══════════════════════════════════════════════════════════════════
-$host    = 'localhost';
-$db      = 'recloth';
-$user    = 'root';   // sesuaikan
-$pass    = '';       // sesuaikan
-$charset = 'utf8mb4';
-
-try {
-    $pdo = new PDO(
-        "mysql:host=$host;dbname=$db;charset=$charset",
-        $user, $pass,
-        [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC]
-    );
-} catch (PDOException $e) {
-    die('<p style="color:red;font-family:sans-serif;padding:40px">Koneksi DB gagal: ' . htmlspecialchars($e->getMessage()) . '</p>');
-}
+require_once __DIR__ . '/../config/database.php';
 
 // ══════════════════════════════════════════════════════════════════
 //  Helper: simpan base64 image → file di disk
@@ -70,6 +52,18 @@ if ($action === 'add') {
         ':discount_percent' => (float)($_POST['discount_percent'] ?? 0),
         ':category_id'      => ($_POST['category_id'] !== '') ? (int)$_POST['category_id'] : null,
     ]);
+    $productId = $pdo->lastInsertId();
+    if (!empty($_POST['gallery_base64']) && is_array($_POST['gallery_base64'])) {
+        foreach ($_POST['gallery_base64'] as $idx => $base64) {
+            if (strpos($base64, 'data:image') === 0) {
+                $gPath = saveBase64Image($base64);
+                if ($gPath) {
+                    $pdo->prepare("INSERT INTO product_images (product_id, image_url, sort_order) VALUES (?, ?, ?)")
+                        ->execute([$productId, $gPath, $idx]);
+                }
+            }
+        }
+    }
     $message = 'Produk berhasil ditambahkan!';
 }
 
@@ -117,6 +111,33 @@ if ($action === 'edit') {
         ':category_id'      => ($_POST['category_id'] !== '') ? (int)$_POST['category_id'] : null,
         ':id'               => $id,
     ]);
+    // Handle gallery deletions
+    if (!empty($_POST['deleted_gallery_ids']) && is_array($_POST['deleted_gallery_ids'])) {
+        foreach ($_POST['deleted_gallery_ids'] as $gid) {
+            $stmtG = $pdo->prepare("SELECT image_url FROM product_images WHERE id = ? AND product_id = ?");
+            $stmtG->execute([(int)$gid, $id]);
+            $gImg = $stmtG->fetch();
+            if ($gImg) {
+                if ($gImg['image_url'] && file_exists(__DIR__ . '/' . $gImg['image_url'])) unlink(__DIR__ . '/' . $gImg['image_url']);
+                $pdo->prepare("DELETE FROM product_images WHERE id = ?")->execute([(int)$gid]);
+            }
+        }
+    }
+    // Handle gallery additions
+    if (!empty($_POST['gallery_base64']) && is_array($_POST['gallery_base64'])) {
+        $stmtMax = $pdo->prepare("SELECT MAX(sort_order) FROM product_images WHERE product_id = ?");
+        $stmtMax->execute([$id]);
+        $maxSort = (int)$stmtMax->fetchColumn();
+        foreach ($_POST['gallery_base64'] as $idx => $base64) {
+            if (strpos($base64, 'data:image') === 0) {
+                $gPath = saveBase64Image($base64);
+                if ($gPath) {
+                    $pdo->prepare("INSERT INTO product_images (product_id, image_url, sort_order) VALUES (?, ?, ?)")
+                        ->execute([$id, $gPath, $maxSort + $idx + 1]);
+                }
+            }
+        }
+    }
     $message = 'Produk berhasil diperbarui!';
 }
 
@@ -127,6 +148,15 @@ if ($action === 'delete') {
     $old = $stmtOld->fetch();
     if ($old && $old['image'] && file_exists(__DIR__ . '/' . $old['image'])) {
         unlink(__DIR__ . '/' . $old['image']);
+    }
+    // Delete gallery images from disk
+    $stmtG = $pdo->prepare("SELECT image_url FROM product_images WHERE product_id = ?");
+    $stmtG->execute([$id]);
+    $gallery = $stmtG->fetchAll();
+    foreach ($gallery as $g) {
+        if ($g['image_url'] && file_exists(__DIR__ . '/' . $g['image_url'])) {
+            unlink(__DIR__ . '/' . $g['image_url']);
+        }
     }
     $pdo->prepare("DELETE FROM products WHERE id = ?")->execute([$id]);
     $message = 'Produk berhasil dihapus!';
@@ -147,6 +177,13 @@ $sqlList .= " ORDER BY created_at DESC";
 $stmtList  = $pdo->prepare($sqlList);
 $stmtList->execute($params);
 $products  = $stmtList->fetchAll();
+
+foreach ($products as &$p) {
+    $stmtG = $pdo->prepare("SELECT id, image_url FROM product_images WHERE product_id = ? ORDER BY sort_order ASC");
+    $stmtG->execute([$p['id']]);
+    $p['gallery'] = $stmtG->fetchAll();
+}
+unset($p);
 
 // Ambil kategori (jika tabel categories ada)
 $categories = [];
@@ -217,6 +254,17 @@ try {
     .search-box svg { width: 18px; height: 18px; flex-shrink: 0; color: #a0aab8; }
     .search-box input { border: none; outline: none; font-size: 13.5px; color: var(--txt); width: 100%; background: transparent; font-family: var(--font); }
     .search-box input::placeholder { color: #a0aab8; }
+
+    /* Gallery management */
+    .gallery-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+    .gallery-item { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); background: var(--bg); }
+    .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery-item .remove-btn { position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; background: rgba(210, 78, 78, 0.85); color: #fff; border: none; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; transition: background .15s; }
+    .gallery-item .remove-btn:hover { background: var(--red); }
+    .gallery-add { aspect-ratio: 1; border: 2px dashed var(--border); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--txt2); cursor: pointer; transition: all .15s; }
+    .gallery-add:hover { border-color: var(--black); color: var(--black); background: #fafafa; }
+    .gallery-add svg { width: 20px; height: 20px; margin-bottom: 4px; }
+    .gallery-add span { font-size: 10px; font-weight: 600; text-transform: uppercase; }
 
     /* ── Table ─── */
     .tcard { background: var(--card); border-radius: var(--r); border: 1px solid var(--border); overflow: hidden; box-shadow: var(--shadow); }
@@ -552,8 +600,24 @@ try {
           <label>Deskripsi</label>
           <textarea name="description" id="fDesc" rows="3" placeholder="Deskripsi singkat produk..."></textarea>
         </div>
+
+        <!-- Gallery -->
+        <div class="fg">
+          <label>Galeri Foto (Opsional)</label>
+          <div class="gallery-grid" id="galleryGrid">
+            <!-- Items via JS -->
+            <label class="gallery-add" id="galleryAddBtn">
+              <input type="file" multiple accept="image/*" style="display:none" onchange="handleGallery(event)"/>
+              <svg fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span>Tambah</span>
+            </label>
+          </div>
+          <div id="galleryInputs" style="display:none"></div>
+          <div id="deleteInputs" style="display:none"></div>
+        </div>
       </div><!-- /mbody -->
       <div class="mfoot">
+        <button type="button" class="btn btn-d" id="editDelBtn" style="margin-right:auto; display:none;">Hapus Produk</button>
         <button type="button" class="btn btn-s" onclick="closeAll()">Batal</button>
         <button type="submit" class="btn btn-p">Simpan</button>
       </div>
@@ -607,13 +671,83 @@ document.querySelectorAll('.overlay').forEach(el => {
   el.addEventListener('click', e => { if (e.target === el) closeAll(); });
 });
 
+// ─ Gallery Logic ─
+let galleryData = []; // { id: null, src: base64/url, isNew: bool }
+let deletedGalleryIds = [];
+
+function handleGallery(event) {
+  const files = Array.from(event.target.files);
+  files.forEach(file => {
+    if (file.size > 5 * 1024 * 1024) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      galleryData.push({ id: null, src: e.target.result, isNew: true });
+      renderGallery();
+    };
+    reader.readAsDataURL(file);
+  });
+  event.target.value = '';
+}
+
+function removeGallery(index) {
+  const item = galleryData[index];
+  if (!item.isNew && item.id) {
+    deletedGalleryIds.push(item.id);
+  }
+  galleryData.splice(index, 1);
+  renderGallery();
+}
+
+function renderGallery() {
+  const grid = document.getElementById('galleryGrid');
+  const inputs = document.getElementById('galleryInputs');
+  const delInputs = document.getElementById('deleteInputs');
+  const addBtn = document.getElementById('galleryAddBtn');
+  
+  // Clear grid except add button
+  Array.from(grid.querySelectorAll('.gallery-item')).forEach(el => el.remove());
+  inputs.innerHTML = '';
+  delInputs.innerHTML = '';
+  
+  galleryData.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'gallery-item';
+    div.innerHTML = `<img src="${esc(item.src)}"/><button type="button" class="remove-btn" onclick="removeGallery(${idx})">✕</button>`;
+    grid.insertBefore(div, addBtn);
+    
+    if (item.isNew) {
+      const inp = document.createElement('input');
+      inp.type = 'hidden';
+      inp.name = 'gallery_base64[]';
+      inp.value = item.src;
+      inputs.appendChild(inp);
+    }
+  });
+  
+  deletedGalleryIds.forEach(id => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = 'deleted_gallery_ids[]';
+    inp.value = id;
+    delInputs.appendChild(inp);
+  });
+}
+
 // ─ View Detail ─
 function openView(id) {
   const p = PRODUCTS.find(x => x.id == id);
   if (!p) return;
-  const imgHtml = p.image
-    ? `<img src="${esc(p.image)}" alt="" style="width:100%;height:100%;object-fit:cover"/>`
-    : '🛍️';
+  
+  let images = [];
+  if (p.image) images.push(p.image);
+  if (p.gallery) p.gallery.forEach(g => images.push(g.image_url));
+
+  const imgHtml = images.length > 0
+    ? `<div class="gallery-grid" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 20px;">
+        ${images.map(src => `<div class="gallery-item" style="border-radius:12px; height:120px;"><img src="${esc(src)}"/></div>`).join('')}
+       </div>`
+    : '<div class="vi-img">🛍️</div>';
+
   const rows = [
     ['ID',             '#' + p.id],
     ['Nama',           p.name],
@@ -643,6 +777,10 @@ function openAdd() {
   document.getElementById('fId').value     = '';
   document.getElementById('productForm').reset();
   resetImg(null);
+  document.getElementById('editDelBtn').style.display = 'none';
+  galleryData = [];
+  deletedGalleryIds = [];
+  renderGallery();
   document.getElementById('formModal').classList.add('show');
 }
 
@@ -666,6 +804,21 @@ function openEdit(id) {
   const catEl = document.getElementById('fCat');
   if (catEl) catEl.value = p.category_id || '';
   resetImg(p.image || null);
+
+  // Show delete button in edit modal
+  const editDelBtn = document.getElementById('editDelBtn');
+  editDelBtn.style.display = 'block';
+  editDelBtn.onclick = () => { closeAll(); openDelete(p.id, p.name); };
+
+  galleryData = [];
+  deletedGalleryIds = [];
+  if (p.gallery) {
+    p.gallery.forEach(g => {
+      galleryData.push({ id: g.id, src: g.image_url, isNew: false });
+    });
+  }
+  renderGallery();
+
   document.getElementById('formModal').classList.add('show');
 }
 
