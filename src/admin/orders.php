@@ -4,6 +4,79 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
     header('Location: ../../index.php');
     exit;
 }
+
+$conn = new mysqli("localhost", "root", "", "recloth");
+if ($conn->connect_error) {
+    die("Koneksi gagal: " . $conn->connect_error);
+}
+
+// Handle AJAX status update
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {
+    header('Content-Type: application/json');
+    $order_id = isset($_POST['order_id']) ? (int)$_POST['order_id'] : 0;
+    $status = isset($_POST['status']) ? $_POST['status'] : '';
+    
+    if ($order_id > 0 && !empty($status)) {
+        $stmt = $conn->prepare("UPDATE orders SET status = ? WHERE id = ?");
+        $stmt->bind_param("si", $status, $order_id);
+        if ($stmt->execute()) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'error' => $stmt->error]);
+        }
+        $stmt->close();
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Invalid data']);
+    }
+    exit;
+}
+
+// Fetch orders
+$orders_query = $conn->query("
+    SELECT o.*, u.name as customer, u.email as email, DATE_FORMAT(o.created_at, '%d %b %Y') as formatted_date
+    FROM orders o
+    JOIN users u ON o.user_id = u.id
+    ORDER BY o.created_at DESC
+");
+
+$orders = [];
+while($row = $orders_query->fetch_assoc()) {
+    $items_query = $conn->query("
+        SELECT p.name, oi.quantity as qty, oi.price 
+        FROM order_items oi 
+        JOIN products p ON oi.product_id = p.id 
+        WHERE oi.order_id = " . $row['id']
+    );
+    
+    $items = [];
+    while($item = $items_query->fetch_assoc()) {
+        $items[] = [
+            'name' => $item['name'],
+            'qty' => (int)$item['qty'],
+            'price' => (float)$item['price']
+        ];
+    }
+    
+    $raw_status = strtolower($row['status'] ?: 'pending');
+    $mapped_status = 'menunggu';
+    if ($raw_status === 'selesai' || $raw_status === 'completed') $mapped_status = 'selesai';
+    else if ($raw_status === 'diproses' || $raw_status === 'processing') $mapped_status = 'diproses';
+    else if ($raw_status === 'dikirim' || $raw_status === 'shipped') $mapped_status = 'dikirim';
+    else if ($raw_status === 'dibatalkan' || $raw_status === 'cancelled') $mapped_status = 'dibatalkan';
+
+    $orders[] = [
+        'id' => '#ORD-' . str_pad($row['id'], 3, '0', STR_PAD_LEFT),
+        'real_id' => $row['id'],
+        'customer' => $row['customer'],
+        'email' => $row['email'],
+        'date' => $row['formatted_date'],
+        'items' => $items,
+        'status' => $mapped_status,
+        'address' => $row['payment_address'] ?: '-',
+        'payment' => $row['payment_method'] ?: '-'
+    ];
+}
+$orders_json = json_encode($orders);
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -340,15 +413,7 @@ if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
 </div>
 
 <script>
-let orders = [
-  { id: '#PSN-001', customer: 'Budi Santoso', email: 'budi@example.com', date: '15 Apr 2026', items: [{ name: 'Kemeja Batik', qty: 1, price: 185000 },{ name: 'Sepatu Adidas', qty: 1, price: 950000 },{ name: 'Tas Kulit', qty: 1, price: 320000 }], status: 'selesai', address: 'Jl. Sudirman No. 1, Jakarta Pusat', payment: 'Kartu Kredit' },
-  { id: '#PSN-002', customer: 'Siti Rahayu', email: 'siti@example.com', date: '16 Apr 2026', items: [{ name: 'MacBook Pro 14"', qty: 1, price: 22500000 }], status: 'diproses', address: 'Jl. Gatot Subroto 5, Bandung', payment: 'Transfer Bank' },
-  { id: '#PSN-003', customer: 'Agus Wijaya', email: 'agus@example.com', date: '17 Apr 2026', items: [{ name: 'Apple Watch SE', qty: 1, price: 3800000 }], status: 'menunggu', address: 'Jl. Pemuda 12, Surabaya', payment: 'COD' },
-  { id: '#PSN-004', customer: 'Dewi Kusuma', email: 'dewi@example.com', date: '17 Apr 2026', items: [{ name: 'iPad Pro 12.9"', qty: 1, price: 18500000 }], status: 'selesai', address: 'Jl. Ahmad Yani 7, Medan', payment: 'GoPay' },
-  { id: '#PSN-005', customer: 'Hendra Pratama', email: 'hendra@example.com', date: '18 Apr 2026', items: [{ name: 'Apple TV 4K', qty: 1, price: 1950000 },{ name: 'HomePod mini', qty: 2, price: 1600000 }], status: 'dikirim', address: 'Jl. Diponegoro 3, Yogyakarta', payment: 'OVO' },
-  { id: '#PSN-006', customer: 'Rina Melati', email: 'rina@example.com', date: '18 Apr 2026', items: [{ name: 'Mac mini M4', qty: 1, price: 9800000 }], status: 'dibatalkan', address: 'Jl. Asia Afrika 20, Bandung', payment: 'Kartu Kredit' },
-  { id: '#PSN-007', customer: 'Fajar Nugroho', email: 'fajar@example.com', date: '19 Apr 2026', items: [{ name: 'Apple Pencil Pro', qty: 1, price: 1750000 },{ name: 'Smart Folio', qty: 1, price: 1100000 }], status: 'diproses', address: 'Jl. Imam Bonjol 8, Semarang', payment: 'DANA' },
-];
+let orders = <?php echo $orders_json; ?>;
 
 const statusLabel = {
   selesai: 'Selesai',
@@ -475,10 +540,33 @@ function saveStatus() {
   if (!currentOrderId || !selectedStatus) return;
   const o = orders.find(x => x.id === currentOrderId);
   if (o.status === selectedStatus) { closeModal(); return; }
+  
   const savedId = o.id;
-  o.status = selectedStatus;
-  filterOrders(); renderStats(); closeModal();
-  showToast(`Status ${savedId} diubah ke "${statusLabel[selectedStatus]}"`);
+  const realId = o.real_id;
+  
+  const formData = new FormData();
+  formData.append('action', 'update_status');
+  formData.append('order_id', realId);
+  formData.append('status', selectedStatus);
+
+  fetch('orders.php', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      o.status = selectedStatus;
+      filterOrders(); renderStats(); closeModal();
+      showToast(`Status ${savedId} diubah ke "${statusLabel[selectedStatus]}"`);
+    } else {
+      showToast('Gagal mengubah status pesanan');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showToast('Terjadi kesalahan jaringan');
+  });
 }
 
 function showToast(msg) {

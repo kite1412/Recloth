@@ -198,46 +198,42 @@ if ($conn->connect_error) {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="order-id">#ORD-001</td>
-            <td>U001</td>
-            <td>Agus Wijaya</td>
-            <td class="amount">Rp 1.250.000</td>
-            <td><span class="badge completed">Completed</span></td>
-            <td class="date">2026-04-18</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-002</td>
-            <td>U002</td>
-            <td>Budi Santoso</td>
-            <td class="amount">Rp 2.100.000</td>
-            <td><span class="badge processing">Processing</span></td>
-            <td class="date">2026-04-18</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-003</td>
-            <td>U003</td>
-            <td>Dewi Kusuma</td>
-            <td class="amount">Rp 450.000</td>
-            <td><span class="badge pending">Pending</span></td>
-            <td class="date">2026-04-17</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-004</td>
-            <td>U004</td>
-            <td>Fajar Nugroho</td>
-            <td class="amount">Rp 3.750.000</td>
-            <td><span class="badge completed">Completed</span></td>
-            <td class="date">2026-04-17</td>
-          </tr>
-          <tr>
-            <td class="order-id">#ORD-005</td>
-            <td>U005</td>
-            <td>Fitri Handayani</td>
-            <td class="amount">Rp 980.000</td>
-            <td><span class="badge cancelled">Cancelled</span></td>
-            <td class="date">2026-04-16</td>
-          </tr>
+          <?php
+          $recent_orders = $conn->query("
+            SELECT o.id, o.user_id, u.name, o.total_price, o.status, DATE(o.created_at) as order_date
+            FROM orders o
+            JOIN users u ON o.user_id = u.id
+            ORDER BY o.created_at DESC
+            LIMIT 5
+          ");
+          if ($recent_orders->num_rows > 0) {
+              while ($order = $recent_orders->fetch_assoc()) {
+                  $formatted_id = '#ORD-' . str_pad($order['id'], 3, '0', STR_PAD_LEFT);
+                  $formatted_user_id = 'U' . str_pad($order['user_id'], 3, '0', STR_PAD_LEFT);
+                  $formatted_price = 'Rp ' . number_format($order['total_price'], 0, ',', '.');
+                  $status = strtolower($order['status'] ?? 'pending');
+                  
+                  $badge_class = 'pending';
+                  $status_text = 'Menunggu';
+                  if ($status === 'selesai' || $status === 'completed') { $badge_class = 'completed'; $status_text = 'Selesai'; }
+                  else if ($status === 'diproses' || $status === 'processing') { $badge_class = 'processing'; $status_text = 'Diproses'; }
+                  else if ($status === 'dikirim' || $status === 'shipped') { $badge_class = 'processing'; $status_text = 'Dikirim'; }
+                  else if ($status === 'dibatalkan' || $status === 'cancelled') { $badge_class = 'cancelled'; $status_text = 'Dibatalkan'; }
+                  else if ($status === 'menunggu' || $status === 'pending') { $badge_class = 'pending'; $status_text = 'Menunggu'; }
+
+                  echo "<tr>";
+                  echo "<td class='order-id'>{$formatted_id}</td>";
+                  echo "<td>{$formatted_user_id}</td>";
+                  echo "<td>" . htmlspecialchars($order['name']) . "</td>";
+                  echo "<td class='amount'>{$formatted_price}</td>";
+                  echo "<td><span class='badge {$badge_class}'>{$status_text}</span></td>";
+                  echo "<td class='date'>" . htmlspecialchars($order['order_date']) . "</td>";
+                  echo "</tr>";
+              }
+          } else {
+              echo "<tr><td colspan='6' style='text-align: center; padding: 20px; color: var(--text-secondary);'>Belum ada pesanan</td></tr>";
+          }
+          ?>
         </tbody>
       </table>
     </div>
