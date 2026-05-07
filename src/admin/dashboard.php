@@ -1,10 +1,4 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin') {
-    header('Location: ../../index.php');
-    exit;
-}
-
 $conn = new mysqli("localhost", "root", "", "recloth");
 
 if ($conn->connect_error) {
@@ -142,10 +136,10 @@ if ($conn->connect_error) {
       </a>
     </nav>
     <div class="sidebar-bottom">
-      <a href="../config/logout.php" class="nav-logout" style="text-decoration: none;">
+      <div class="nav-logout">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16"><path stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
         Logout
-      </a>
+      </div>
     </div>
   </aside>
 
@@ -155,7 +149,7 @@ if ($conn->connect_error) {
     </div>
 
     <div class="action-cards">
-      <div class="action-card blue">
+      <div class="action-card blue" onclick="window.location.href='products.php'">
         <div class="card-icon">
           <svg fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24">
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
@@ -164,7 +158,7 @@ if ($conn->connect_error) {
         <h3>Manage Products</h3>
         <p>Add, edit, or remove products from your store</p>
       </div>
-      <div class="action-card purple">
+      <div class="action-card purple" onclick="window.location.href='categories.php'">
         <span class="arrow">→</span>
         <div class="card-icon">
           <svg fill="none" stroke="white" stroke-width="1.8" viewBox="0 0 24 24">
