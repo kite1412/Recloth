@@ -32,7 +32,7 @@ if ($cart) {
             ci.quantity, 
             p.name, 
             p.price, 
-            " . ($hasImage ? 'p.image' : "''") . " AS image, 
+            " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('/src/admin/', p.image), p.image)" : "''") . " AS image,
             c.name AS category_name
         FROM cart_items ci
         JOIN products p ON ci.product_id = p.id

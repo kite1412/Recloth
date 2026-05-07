@@ -100,7 +100,7 @@ $sql = "
         ci.quantity, 
         p.name, 
         p.price, 
-        " . ($hasImage ? 'p.image' : "''") . " AS image, 
+        " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('/src/admin/', p.image), p.image)" : "''") . " AS image,
         c.name AS category_name
     FROM cart_items ci
     JOIN products p ON ci.product_id = p.id
@@ -128,7 +128,7 @@ $authHeader = 'Authorization: Basic ' . base64_encode($serverKey . ':');
 
 $userOrders = [];
 $stmtItems = $pdo->prepare("
-    SELECT oi.quantity, oi.price, p.name, " . ($hasImage ? 'p.image' : "''") . " AS image 
+    SELECT oi.quantity, oi.price, p.name, " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('/src/admin/', p.image), p.image)" : "''") . " AS image
     FROM order_items oi
     JOIN products p ON oi.product_id = p.id
     WHERE oi.order_id = ?

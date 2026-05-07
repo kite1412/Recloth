@@ -59,7 +59,7 @@ if ($action === 'add') {
     $stmt->execute([
         ':name'             => trim($_POST['name'] ?? ''),
         ':description'      => trim($_POST['description'] ?? ''),
-        ':gender'           => $_POST['gender'] ?? '',
+        ':gender'           => in_array($_POST['gender'] ?? '', ['pria', 'wanita']) ? $_POST['gender'] : null,
         ':condition_status' => $_POST['condition_status'] ?? '',
         ':size_label'       => trim($_POST['size_label'] ?? ''),
         ':production_year'  => ($_POST['production_year'] !== '') ? (int)$_POST['production_year'] : null,
@@ -105,7 +105,7 @@ if ($action === 'edit') {
     $stmt->execute([
         ':name'             => trim($_POST['name'] ?? ''),
         ':description'      => trim($_POST['description'] ?? ''),
-        ':gender'           => $_POST['gender'] ?? '',
+        ':gender'           => in_array($_POST['gender'] ?? '', ['pria', 'wanita']) ? $_POST['gender'] : null,
         ':condition_status' => $_POST['condition_status'] ?? '',
         ':size_label'       => trim($_POST['size_label'] ?? ''),
         ':production_year'  => ($_POST['production_year'] !== '') ? (int)$_POST['production_year'] : null,
@@ -497,9 +497,9 @@ try {
           <div class="fg">
             <label>Gender</label>
             <select name="gender" id="fGender">
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="unisex">Unisex</option>
+              <option value="">— Pilih —</option>
+              <option value="pria">Pria</option>
+              <option value="wanita">Wanita</option>
             </select>
           </div>
         </div>
@@ -654,7 +654,7 @@ function openEdit(id) {
   document.getElementById('fAction').value = 'edit';
   document.getElementById('fId').value     = p.id;
   document.getElementById('fName').value   = p.name   || '';
-  document.getElementById('fGender').value = p.gender || 'unisex';
+  document.getElementById('fGender').value = p.gender || '';
   document.getElementById('fCond').value   = p.condition_status || 'new';
   document.getElementById('fSize').value   = p.size_label       || '';
   document.getElementById('fPrice').value  = p.price            || '';
