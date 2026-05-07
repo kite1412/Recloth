@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
             
             $payload = [
                 "transaction_details" => [
-                    "order_id" => "order-" . $orderId,
+                    "order_id" => "orders-" . $orderId,
                     "gross_amount" => $totalPrice
                 ]
             ];
