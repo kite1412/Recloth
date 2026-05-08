@@ -36,6 +36,9 @@ function productImage(string $url): string
 {
     $url = trim($url);
     if ($url !== '') {
+        if (str_starts_with($url, '../admin/')) {
+            return 'src/admin/' . substr($url, strlen('../admin/'));
+        }
         return $url;
     }
 
