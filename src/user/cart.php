@@ -137,7 +137,7 @@ $stmtUpdateStatus = $pdo->prepare("UPDATE orders SET status = ? WHERE id = ?");
 
 foreach ($userOrdersRaw as $order) {
     if ($order['status'] === 'pending' && !empty($serverKey)) {
-        $ch = curl_init("https://api.sandbox.midtrans.com/v2/order-{$order['id']}/status");
+        $ch = curl_init("https://api.sandbox.midtrans.com/v2/orders-{$order['id']}/status");
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
             'Accept: application/json',
