@@ -59,7 +59,7 @@ function productImage(string $url): string
     <style>
         @font-face {
             font-family: 'Symphony';
-            src: url('public/fonts/symphony-pro-regular.otf') format('opentype');
+            src: url('/Recloth/public/fonts/symphony-pro-regular.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
         }

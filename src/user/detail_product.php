@@ -83,7 +83,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 	<style>
 		@font-face {
             font-family: 'Symphony';
-            src: url('/public/fonts/symphony-pro-regular.otf') format('opentype');
+            src: url('/Recloth/public/fonts/symphony-pro-regular.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
         }

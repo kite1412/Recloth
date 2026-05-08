@@ -39,7 +39,7 @@ function recloth_base_product_select(array $schema): string
             p.price,
             p.stock,
             " . $discountCol . " AS discount_percent,
-            " . ($schema['has_image'] ? "IF(p.image LIKE 'uploads/%', CONCAT('/src/admin/', p.image), p.image)" : "''") . " AS image,
+            " . ($schema['has_image'] ? "IF(p.image LIKE 'uploads/%', CONCAT('/Recloth/src/admin/', p.image), p.image)" : "''") . " AS image,
             " . ($schema['has_gender'] ? 'p.gender' : "''") . " AS gender,
             " . ($schema['has_condition'] ? 'p.condition_status' : "''") . " AS condition_status,
             " . ($schema['has_size'] ? 'p.size_label' : "''") . " AS size_label,
@@ -152,7 +152,7 @@ function recloth_fetch_product_images(PDO $pdo, int $productId, string $primaryI
         return array_values(array_unique($images));
     }
 
-    $stmt = $pdo->prepare("SELECT IF(image_url LIKE 'uploads/%', CONCAT('/src/admin/', image_url), image_url) FROM product_images WHERE product_id = :id ORDER BY sort_order ASC, id ASC");
+    $stmt = $pdo->prepare("SELECT IF(image_url LIKE 'uploads/%', CONCAT('/Recloth/src/admin/', image_url), image_url) FROM product_images WHERE product_id = :id ORDER BY sort_order ASC, id ASC");
     $stmt->execute([':id' => $productId]);
     $rows = $stmt->fetchAll(PDO::FETCH_COLUMN);
 

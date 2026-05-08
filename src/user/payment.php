@@ -32,7 +32,7 @@ if ($cart) {
             ci.quantity, 
             p.name, 
             p.price, 
-            " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('../admin/', p.image), p.image)" : "''") . " AS image,
+            " . ($hasImage ? "IF(p.image LIKE 'uploads/%', CONCAT('/Recloth/src/admin/', p.image), p.image)" : "''") . " AS image,
             c.name AS category_name
         FROM cart_items ci
         JOIN products p ON ci.product_id = p.id
@@ -189,12 +189,12 @@ function e($text): string {
     <title>Pembayaran - Recloth</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="icon" type="image/png" href="/public/icons/app-logo.png">
+    <link rel="icon" type="image/png" href="/Recloth/public/icons/app-logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         @font-face {
             font-family: 'Symphony';
-            src: url('/public/fonts/symphony-pro-regular.otf') format('opentype');
+            src: url('/Recloth/public/fonts/symphony-pro-regular.otf') format('opentype');
             font-weight: normal;
             font-style: normal;
         }
