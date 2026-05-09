@@ -113,7 +113,7 @@ $cartItems = $stmt->fetchAll();
 
 // Fetch Pesanan Saya (User Orders)
 $stmt = $pdo->prepare("
-    SELECT id, total_price, status, created_at, payment_method, payment_address, address
+    SELECT id, total_price, ongkir, status, created_at, payment_method, payment_address, address
     FROM orders 
     WHERE user_id = ? 
     ORDER BY created_at DESC
@@ -171,11 +171,13 @@ foreach ($userOrdersRaw as $order) {
 }
 
 $totalItems = 0;
-$totalPrice = 0;
+$subtotalPrice = 0;
+$ongkir = 30000;
 foreach ($cartItems as $item) {
     $totalItems += $item['quantity'];
-    $totalPrice += $item['quantity'] * $item['price'];
+    $subtotalPrice += $item['quantity'] * $item['price'];
 }
+$totalPrice = !empty($cartItems) ? $subtotalPrice + $ongkir : 0;
 
 function rupiah($price): string
 {
@@ -813,6 +815,15 @@ function e($text): string
                                                     <p style="font-weight: 500; color: var(--black); line-height: 1.4;"><?= nl2br(e($order['address'])) ?></p>
                                                 </div>
                                             <?php endif; ?>
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line);">
+                                                <span style="color: var(--muted);">Opsi Pengiriman</span>
+                                                <div style="display: flex; align-items: center; gap: 8px;">
+                                                    <img src="../../public/icons/jnt.png" alt="J&T Express" style="height: 18px; width: auto; object-fit: contain;">
+                                                    <?php if (!empty($order['ongkir'])): ?>
+                                                        <span style="font-weight: 700; color: var(--black);"><?= rupiah($order['ongkir']) ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </div>
                                             <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                                                 <span style="color: var(--muted);">Metode Pembayaran</span>
                                                 <span style="font-weight: 600; text-transform: uppercase;"><?= e($order['payment_method']) ?></span>
@@ -835,6 +846,37 @@ function e($text): string
                                                     </div>
                                                 </div>
                                             <?php endif; ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if ($order['status'] === 'completed'): ?>
+                                        <div class="shipment-progress" style="margin-top: 16px; padding: 16px; background: #f8faf8; border: 1px solid #d4edda; border-radius: 10px;">
+                                            <p style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #2e7d32; margin-bottom: 14px;">Progres Pengiriman</p>
+                                            <div style="display: flex; align-items: center; gap: 0; position: relative;">
+                                                <?php
+                                                $steps = [
+                                                    ['label' => 'Pembayaran Selesai', 'done' => true],
+                                                    ['label' => 'Sedang Dikemas', 'done' => false, 'active' => true],
+                                                    ['label' => 'Dikirim', 'done' => false],
+                                                    ['label' => 'Selesai', 'done' => false],
+                                                ];
+                                                foreach ($steps as $i => $step):
+                                                    $isDone = $step['done'];
+                                                    $isActive = $step['active'] ?? false;
+                                                    $dotBg = $isDone ? '#2e7d32' : ($isActive ? '#ff9800' : '#d0d0d0');
+                                                    $dotBorder = $isDone ? '#2e7d32' : ($isActive ? '#ff9800' : '#d0d0d0');
+                                                    $labelColor = $isDone ? '#2e7d32' : ($isActive ? '#e65100' : '#aaa');
+                                                    $labelWeight = ($isDone || $isActive) ? '700' : '500';
+                                                ?>
+                                                    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1;">
+                                                        <div style="width: <?= $isActive ? '14px' : '10px' ?>; height: <?= $isActive ? '14px' : '10px' ?>; border-radius: 50%; background: <?= $dotBg ?>; border: 2px solid <?= $dotBorder ?>; <?= $isActive ? 'box-shadow: 0 0 0 4px rgba(255,152,0,0.2);' : '' ?>"></div>
+                                                        <span style="font-size: 10px; margin-top: 8px; color: <?= $labelColor ?>; font-weight: <?= $labelWeight ?>; text-align: center; line-height: 1.3;"><?= $step['label'] ?></span>
+                                                    </div>
+                                                    <?php if ($i < count($steps) - 1): ?>
+                                                        <div style="flex: 1; height: 2px; background: <?= $isDone ? '#2e7d32' : '#e0e0e0' ?>; margin-top: -18px; position: relative; z-index: 0;"></div>
+                                                    <?php endif; ?>
+                                                <?php endforeach; ?>
+                                            </div>
                                         </div>
                                     <?php endif; ?>
                                 </div>
@@ -897,12 +939,14 @@ function e($text): string
         </div>
         <div class="summary-row">
             <span class="label">Total Harga</span>
-            <span><?= rupiah($totalPrice) ?></span>
+            <span><?= rupiah($subtotalPrice) ?></span>
         </div>
+        <?php if (!empty($cartItems)): ?>
         <div class="summary-row">
-            <span class="label">Biaya Pengiriman</span>
-            <span>Gratis</span>
+            <span class="label">Ongkir</span>
+            <span><?= rupiah($ongkir) ?></span>
         </div>
+        <?php endif; ?>
         <div class="summary-total">
             <span>Total Belanja</span>
             <span><?= rupiah($totalPrice) ?></span>

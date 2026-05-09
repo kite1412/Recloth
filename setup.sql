@@ -89,6 +89,7 @@ CREATE TABLE orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
   total_price DECIMAL(10,2),
+  ongkir DECIMAL(10,2) DEFAULT 30000,
   status VARCHAR(50),
   payment_method VARCHAR(100),
   payment_address VARCHAR(1000),

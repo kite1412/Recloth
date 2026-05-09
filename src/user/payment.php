@@ -16,6 +16,8 @@ $cart = $stmt->fetch();
 
 $cartItems = [];
 $totalItems = 0;
+$subtotalPrice = 0;
+$ongkir = 30000;
 $totalPrice = 0;
 
 if ($cart) {
@@ -45,8 +47,9 @@ if ($cart) {
 
     foreach ($cartItems as $item) {
         $totalItems += $item['quantity'];
-        $totalPrice += $item['quantity'] * $item['price'];
+        $subtotalPrice += $item['quantity'] * $item['price'];
     }
+    $totalPrice = $subtotalPrice + $ongkir;
 }
 
 // Ambil daftar alamat user
@@ -83,8 +86,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
             $pdo->beginTransaction();
             
             // Create order
-            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, status, payment_method, address) VALUES (?, ?, 'pending', ?, ?)");
-            $stmt->execute([$userId, $totalPrice, $paymentMethod, $selectedAddressText]);
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, ongkir, status, payment_method, address) VALUES (?, ?, ?, 'pending', ?, ?)");
+            $stmt->execute([$userId, $totalPrice, $ongkir, $paymentMethod, $selectedAddressText]);
             $orderId = $pdo->lastInsertId();
             
             // Create order items
@@ -818,6 +821,15 @@ function e($text): string {
                         <?php endif; ?>
                     </div>
 
+                    <h3>Opsi Pengiriman</h3>
+                    <div style="margin-bottom: 32px;">
+                        <label class="payment-method" style="border-color: #111;">
+                            <input type="radio" name="shipping" value="jnt" checked>
+                            <img src="../../public/icons/jnt.png" alt="J&T Express" class="payment-icon" style="height: 24px;">
+                            <span style="margin-left: auto; font-weight: 700;"><?= rupiah($ongkir) ?></span>
+                        </label>
+                    </div>
+
                     <h3>Metode Pembayaran</h3>
                     
                     <h4 class="payment-group-title">Transfer Bank</h4>
@@ -847,11 +859,11 @@ function e($text): string {
                 <h3>Ringkasan Pembayaran</h3>
                 <div class="summary-row">
                     <span class="label">Total Harga (<?= e($totalItems) ?> barang)</span>
-                    <span><?= rupiah($totalPrice) ?></span>
+                    <span><?= rupiah($subtotalPrice) ?></span>
                 </div>
                 <div class="summary-row">
-                    <span class="label">Biaya Pengiriman</span>
-                    <span>Gratis</span>
+                    <span class="label">Ongkir</span>
+                    <span><?= rupiah($ongkir) ?></span>
                 </div>
                 <div class="summary-total">
                     <span>Total Tagihan</span>
