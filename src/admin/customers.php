@@ -9,8 +9,21 @@ $result = $conn->query("SELECT id, name, email, role, created_at FROM users WHER
 $customers = [];
 
 while ($row = $result->fetch_assoc()) {
-  $customers[] = $row;
+  $row['addresses'] = [];
+  $customers[$row['id']] = $row;
 }
+
+if (!empty($customers)) {
+  $userIds = implode(',', array_keys($customers));
+  $addrResult = $conn->query("SELECT id, user_id, label, address, is_default FROM user_addresses WHERE user_id IN ($userIds) ORDER BY is_default DESC, created_at ASC");
+  while ($addr = $addrResult->fetch_assoc()) {
+    if (isset($customers[$addr['user_id']])) {
+      $customers[$addr['user_id']]['addresses'][] = $addr;
+    }
+  }
+}
+
+$customers = array_values($customers);
 ?>
 
 <!DOCTYPE html>
@@ -126,6 +139,42 @@ while ($row = $result->fetch_assoc()) {
 
   .customers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
   @media (max-width: 1200px) { .customers-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  .address-section { margin-top: 12px; }
+  .address-section-title { font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+  .address-section-title svg { width: 13px; height: 13px; color: #9daac8; }
+  .address-list { display: flex; flex-direction: column; gap: 6px; }
+  .address-item {
+    background: var(--main-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; font-size: 12.5px; color: var(--text-primary); line-height: 1.5;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .address-item.is-default { border-color: #a3cfbb; background: #f4faf7; }
+  .address-label {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 2px 8px; border-radius: 4px; background: var(--gray-light); color: var(--text-secondary);
+    white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+  }
+  .address-label.default { background: var(--green-light); color: var(--green); }
+  .address-text { flex: 1; word-break: break-word; }
+  .no-address { font-size: 12px; color: var(--text-secondary); font-style: italic; padding: 6px 0; }
+
+  .modal-address-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .modal-address-item {
+    background: var(--main-bg); border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 12px 14px; font-size: 13px; color: var(--text-primary); line-height: 1.55;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .modal-address-item.is-default { border-color: #a3cfbb; background: #f4faf7; }
+  .modal-address-label {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 3px 10px; border-radius: 5px; background: var(--gray-light); color: var(--text-secondary);
+    white-space: nowrap; flex-shrink: 0; margin-top: 1px;
+  }
+  .modal-address-label.default { background: var(--green-light); color: var(--green); }
+  .modal-address-text { flex: 1; word-break: break-word; }
 
   .customer-card {
     background: var(--card-bg); border: 1.5px solid var(--border); border-radius: var(--radius);
@@ -455,7 +504,35 @@ function renderGrid() {
     return;
   }
 
-  grid.innerHTML = filteredCustomers.map(c => `
+  grid.innerHTML = filteredCustomers.map(c => {
+    const addresses = c.addresses || [];
+    let addressHtml = '';
+    if (addresses.length > 0) {
+      addressHtml = `<div class="address-section">
+        <div class="address-section-title">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3" stroke-width="2"/></svg>
+          Alamat (${addresses.length})
+        </div>
+        <div class="address-list">
+          ${addresses.map(a => `
+            <div class="address-item ${a.is_default == 1 ? 'is-default' : ''}">
+              <span class="address-label ${a.is_default == 1 ? 'default' : ''}">${a.label}${a.is_default == 1 ? ' ✓' : ''}</span>
+              <span class="address-text">${a.address}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+    } else {
+      addressHtml = `<div class="address-section">
+        <div class="address-section-title">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"/><circle cx="12" cy="11" r="3" stroke-width="2"/></svg>
+          Alamat
+        </div>
+        <div class="no-address">Belum ada alamat</div>
+      </div>`;
+    }
+
+    return `
     <div class="customer-card">
       <div class="card-header">
         <div class="customer-info">
@@ -475,13 +552,17 @@ function renderGrid() {
         <div class="contact-row">Role: ${c.role}</div>
       </div>
 
-      <div class="card-footer">
+      <div class="card-divider"></div>
+      ${addressHtml}
+
+      <div class="card-footer" style="margin-top: 14px;">
         <span class="joined-date">
           Bergabung: ${c.created_at}
         </span>
       </div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function filterCustomers() {
@@ -499,6 +580,21 @@ function filterCustomers() {
 
 function openModal(customerId) {
   const c = customers.find(x => x.id == customerId);
+  const addresses = c.addresses || [];
+
+  let addressListHtml = '';
+  if (addresses.length > 0) {
+    addressListHtml = `<div class="modal-address-list">
+      ${addresses.map(a => `
+        <div class="modal-address-item ${a.is_default == 1 ? 'is-default' : ''}">
+          <span class="modal-address-label ${a.is_default == 1 ? 'default' : ''}">${a.label}${a.is_default == 1 ? ' ✓' : ''}</span>
+          <span class="modal-address-text">${a.address}</span>
+        </div>
+      `).join('')}
+    </div>`;
+  } else {
+    addressListHtml = `<div class="no-address" style="margin-bottom: 20px;">Belum ada alamat tersimpan</div>`;
+  }
 
   document.getElementById('modalBody').innerHTML = `
     <div class="modal-profile">
@@ -525,6 +621,9 @@ function openModal(customerId) {
         <div class="val">${c.created_at}</div>
       </div>
     </div>
+
+    <div class="section-title">Alamat (${addresses.length})</div>
+    ${addressListHtml}
 
     <button onclick="deleteUser(${c.id})" style="margin-top:15px;background:red;color:#fff;padding:10px;border:none;border-radius:6px;cursor:pointer">
       Hapus User
