@@ -113,7 +113,7 @@ $cartItems = $stmt->fetchAll();
 
 // Fetch Pesanan Saya (User Orders)
 $stmt = $pdo->prepare("
-    SELECT id, total_price, ongkir, status, created_at, payment_method, payment_address, address
+    SELECT id, total_price, status, created_at, payment_method, payment_address, address
     FROM orders 
     WHERE user_id = ? 
     ORDER BY created_at DESC
@@ -167,17 +167,22 @@ foreach ($userOrdersRaw as $order) {
 
     $stmtItems->execute([$order['id']]);
     $order['items'] = $stmtItems->fetchAll();
+
+    // Fetch shipment info
+    $stmtShip = $pdo->prepare("SELECT service_name, shipment_price FROM shipment_info WHERE order_id = ? LIMIT 1");
+    $stmtShip->execute([$order['id']]);
+    $order['shipment'] = $stmtShip->fetch() ?: null;
+
     $userOrders[] = $order;
 }
 
 $totalItems = 0;
 $subtotalPrice = 0;
-$ongkir = 30000;
 foreach ($cartItems as $item) {
     $totalItems += $item['quantity'];
     $subtotalPrice += $item['quantity'] * $item['price'];
 }
-$totalPrice = !empty($cartItems) ? $subtotalPrice + $ongkir : 0;
+$totalPrice = !empty($cartItems) ? $subtotalPrice : 0;
 
 function rupiah($price): string
 {
@@ -818,9 +823,11 @@ function e($text): string
                                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line);">
                                                 <span style="color: var(--muted);">Opsi Pengiriman</span>
                                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                                    <img src="../../public/icons/jnt.png" alt="J&T Express" style="height: 18px; width: auto; object-fit: contain;">
-                                                    <?php if (!empty($order['ongkir'])): ?>
-                                                        <span style="font-weight: 700; color: var(--black);"><?= rupiah($order['ongkir']) ?></span>
+                                                    <?php if (!empty($order['shipment'])): ?>
+                                                        <span style="font-size: 12px; font-weight: 600; color: var(--black);"><?= e($order['shipment']['service_name']) ?></span>
+                                                        <span style="font-weight: 700; color: var(--black);"><?= rupiah($order['shipment']['shipment_price']) ?></span>
+                                                    <?php else: ?>
+                                                        <span style="font-size: 12px; color: var(--muted);">-</span>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
@@ -944,7 +951,7 @@ function e($text): string
         <?php if (!empty($cartItems)): ?>
         <div class="summary-row">
             <span class="label">Ongkir</span>
-            <span><?= rupiah($ongkir) ?></span>
+            <span style="font-size:12px;color:var(--muted);font-style:italic;">Dihitung saat checkout</span>
         </div>
         <?php endif; ?>
         <div class="summary-total">

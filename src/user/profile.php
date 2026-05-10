@@ -294,6 +294,9 @@ $title = "Profil Saya - Recloth";
                                             <?php endif; ?>
                                         </div>
                                         <p class="text-sm text-gray-600 leading-relaxed"><?= nl2br(htmlspecialchars($addr['address'])) ?></p>
+                                        <?php if (!empty($addr['zip_code'])): ?>
+                                            <p class="text-xs text-gray-400 mt-1 font-medium">Kode Pos: <?= htmlspecialchars($addr['zip_code']) ?></p>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="flex gap-2">
                                         <?php if (!$addr['is_default']): ?>
@@ -339,6 +342,10 @@ $title = "Profil Saya - Recloth";
                     <div class="space-y-1.5">
                         <label class="block text-sm font-semibold text-gray-700">Alamat Lengkap</label>
                         <textarea name="address" rows="4" placeholder="Jl. Contoh No. 123..." class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm resize-none" required></textarea>
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="block text-sm font-semibold text-gray-700">Kode Pos</label>
+                        <input type="text" name="zip_code" placeholder="Contoh: 12345" pattern="[0-9]*" inputmode="numeric" maxlength="10" class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm" required>
                     </div>
                     <div class="flex items-center gap-3">
                         <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 rounded border-gray-300">

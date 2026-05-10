@@ -270,6 +270,28 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                         </div>
                     </div>
 
+                    <div class="space-y-1.5">
+                        <label for="zip_code" class="block text-sm font-semibold text-gray-700">Kode Pos</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                                </svg>
+                            </div>
+                            <input
+                                type="text"
+                                id="zip_code"
+                                name="zip_code"
+                                placeholder="Contoh: 12345"
+                                pattern="[0-9]*"
+                                inputmode="numeric"
+                                maxlength="10"
+                                class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none"
+                                required
+                            >
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="space-y-1.5">
                             <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
@@ -348,6 +370,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
             const address = document.getElementById('address').value.trim();
+            const zipCode = document.getElementById('zip_code').value.trim();
             const password = document.getElementById('password').value.trim();
             const passwordConfirm = document.getElementById('password_confirm').value.trim();
             const terms = document.getElementById('terms').checked;
@@ -357,9 +380,16 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
             errorMessage.classList.add('hidden');
             errorText.textContent = '';
 
-            if (!name || !email || !address || !password || !passwordConfirm) {
+            if (!name || !email || !address || !zipCode || !password || !passwordConfirm) {
                 e.preventDefault();
                 errorText.textContent = 'Semua field harus diisi';
+                errorMessage.classList.remove('hidden');
+                return false;
+            }
+
+            if (!/^\d+$/.test(zipCode)) {
+                e.preventDefault();
+                errorText.textContent = 'Kode pos harus berupa angka';
                 errorMessage.classList.remove('hidden');
                 return false;
             }

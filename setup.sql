@@ -21,6 +21,7 @@ CREATE TABLE user_addresses (
   label VARCHAR(50) DEFAULT 'Rumah',
   address TEXT NOT NULL,
   is_default TINYINT(1) DEFAULT 0,
+  zip_code INT NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
@@ -89,7 +90,6 @@ CREATE TABLE orders (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT,
   total_price DECIMAL(10,2),
-  ongkir DECIMAL(10,2) DEFAULT 30000,
   status VARCHAR(50),
   payment_method VARCHAR(100),
   payment_address VARCHAR(1000),
@@ -109,6 +109,17 @@ CREATE TABLE order_items (
   FOREIGN KEY (order_id) REFERENCES orders(id)
     ON DELETE CASCADE,
   FOREIGN KEY (product_id) REFERENCES products(id)
+    ON DELETE CASCADE
+);
+
+-- SHIPMENT INFO
+CREATE TABLE shipment_info (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  order_id INT NOT NULL,
+  shipment_price DECIMAL(10,2) NOT NULL,
+  service_name VARCHAR(100) NOT NULL,
+  CONSTRAINT fk_shipment_order
+    FOREIGN KEY (order_id) REFERENCES orders(id)
     ON DELETE CASCADE
 );
 

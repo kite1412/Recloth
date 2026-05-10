@@ -15,7 +15,7 @@ while ($row = $result->fetch_assoc()) {
 
 if (!empty($customers)) {
   $userIds = implode(',', array_keys($customers));
-  $addrResult = $conn->query("SELECT id, user_id, label, address, is_default FROM user_addresses WHERE user_id IN ($userIds) ORDER BY is_default DESC, created_at ASC");
+  $addrResult = $conn->query("SELECT id, user_id, label, address, zip_code, is_default FROM user_addresses WHERE user_id IN ($userIds) ORDER BY is_default DESC, created_at ASC");
   while ($addr = $addrResult->fetch_assoc()) {
     if (isset($customers[$addr['user_id']])) {
       $customers[$addr['user_id']]['addresses'][] = $addr;

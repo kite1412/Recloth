@@ -17,7 +17,7 @@ $cart = $stmt->fetch();
 $cartItems = [];
 $totalItems = 0;
 $subtotalPrice = 0;
-$ongkir = 30000;
+$ongkir = 0;
 $totalPrice = 0;
 
 if ($cart) {
@@ -49,7 +49,7 @@ if ($cart) {
         $totalItems += $item['quantity'];
         $subtotalPrice += $item['quantity'] * $item['price'];
     }
-    $totalPrice = $subtotalPrice + $ongkir;
+    $totalPrice = $subtotalPrice;
 }
 
 // Ambil daftar alamat user
@@ -64,6 +64,8 @@ $errorMsg = null;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
     $paymentMethod = $_POST['payment_method'] ?? '';
     $addressId = $_POST['address_id'] ?? '';
+    $shippingCost = (int) ($_POST['shipping_cost'] ?? 0);
+    $shippingService = trim($_POST['shipping_service'] ?? '');
 
     // Validasi alamat
     $selectedAddressText = '';
@@ -81,14 +83,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
         }
     }
     
+    if (!$errorMsg && empty($shippingService)) {
+        $errorMsg = "Silakan pilih opsi pengiriman.";
+    }
+    if (!$errorMsg && $shippingCost <= 0) {
+        $errorMsg = "Biaya pengiriman tidak valid.";
+    }
+
+    // Recalculate total with shipping
+    $ongkir = $shippingCost;
+    $totalPrice = $subtotalPrice + $ongkir;
+
     if (!$errorMsg && in_array($paymentMethod, ['bni', 'bca', 'bri', 'gopay'])) {
         try {
             $pdo->beginTransaction();
             
             // Create order
-            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, ongkir, status, payment_method, address) VALUES (?, ?, ?, 'pending', ?, ?)");
-            $stmt->execute([$userId, $totalPrice, $ongkir, $paymentMethod, $selectedAddressText]);
+            $stmt = $pdo->prepare("INSERT INTO orders (user_id, total_price, status, payment_method, address) VALUES (?, ?, 'pending', ?, ?)");
+            $stmt->execute([$userId, $totalPrice, $paymentMethod, $selectedAddressText]);
             $orderId = $pdo->lastInsertId();
+
+            // Create shipment info
+            $stmt = $pdo->prepare("INSERT INTO shipment_info (order_id, shipment_price, service_name) VALUES (?, ?, ?)");
+            $stmt->execute([$orderId, $ongkir, $shippingService]);
             
             // Create order items
             $stmtItem = $pdo->prepare("INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)");
@@ -165,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($cartItems)) {
             }
             $errorMsg = $e->getMessage();
         }
-    } else {
+    } elseif (!$errorMsg) {
         $errorMsg = "Metode pembayaran belum didukung atau pilih metode terlebih dahulu.";
     }
 }
@@ -806,7 +823,7 @@ function e($text): string {
                         <?php else: ?>
                             <?php foreach ($addresses as $addr): ?>
                                 <label class="payment-method" style="padding: 16px; align-items: flex-start; cursor: pointer;">
-                                    <input type="radio" name="address_id" value="<?= $addr['id'] ?>" <?= $addr['is_default'] ? 'checked' : '' ?> style="margin-top: 4px;">
+                                    <input type="radio" name="address_id" value="<?= $addr['id'] ?>" data-zipcode="<?= e($addr['zip_code'] ?? '') ?>" <?= $addr['is_default'] ? 'checked' : '' ?> style="margin-top: 4px;" onchange="onAddressChange(this)">
                                     <div style="flex: 1;">
                                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                             <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;"><?= e($addr['label']) ?></span>
@@ -822,12 +839,10 @@ function e($text): string {
                     </div>
 
                     <h3>Opsi Pengiriman</h3>
-                    <div style="margin-bottom: 32px;">
-                        <label class="payment-method" style="border-color: #111;">
-                            <input type="radio" name="shipping" value="jnt" checked>
-                            <img src="../../public/icons/jnt.png" alt="J&T Express" class="payment-icon" style="height: 24px;">
-                            <span style="margin-left: auto; font-weight: 700;"><?= rupiah($ongkir) ?></span>
-                        </label>
+                    <input type="hidden" name="shipping_cost" id="shippingCostInput" value="0">
+                    <input type="hidden" name="shipping_service" id="shippingServiceInput" value="">
+                    <div id="shippingOptions" style="margin-bottom: 32px;">
+                        <div id="shippingPlaceholder" style="padding: 20px; text-align: center; color: var(--muted); font-size: 13px; background: #fafafa; border: 1px dashed var(--line); border-radius: 12px;">Pilih alamat pengiriman untuk melihat opsi kurir.</div>
                     </div>
 
                     <h3>Metode Pembayaran</h3>
@@ -863,13 +878,13 @@ function e($text): string {
                 </div>
                 <div class="summary-row">
                     <span class="label">Ongkir</span>
-                    <span><?= rupiah($ongkir) ?></span>
+                    <span id="summaryOngkir">-</span>
                 </div>
                 <div class="summary-total">
                     <span>Total Tagihan</span>
-                    <span><?= rupiah($totalPrice) ?></span>
+                    <span id="summaryTotal"><?= rupiah($subtotalPrice) ?></span>
                 </div>
-                <button type="submit" class="pay-btn">Bayar Sekarang</button>
+                <button type="submit" class="pay-btn" id="payBtn" disabled style="opacity:0.5;cursor:not-allowed;">Bayar Sekarang</button>
             </aside>
         </form>
 
@@ -966,5 +981,113 @@ function e($text): string {
         document.body.style.overflow = 'hidden';
     </script>
     <?php endif; ?>
+
+<script>
+const subtotalPrice = <?= (int) $subtotalPrice ?>;
+
+function rupiah(val) {
+    return 'Rp' + val.toLocaleString('id-ID');
+}
+
+function onAddressChange(radio) {
+    const zip = radio.dataset.zipcode;
+    if (!zip) {
+        document.getElementById('shippingOptions').innerHTML =
+            '<div id="shippingPlaceholder" style="padding:20px;text-align:center;color:var(--muted);font-size:13px;background:#fff1f2;border:1px solid #fda4af;border-radius:12px;">Alamat ini belum memiliki kode pos. Perbarui di halaman profil.</div>';
+        resetShipping();
+        return;
+    }
+    fetchShippingCosts(zip);
+}
+
+function resetShipping() {
+    document.getElementById('shippingCostInput').value = '0';
+    document.getElementById('shippingServiceInput').value = '';
+    document.getElementById('summaryOngkir').textContent = '-';
+    document.getElementById('summaryTotal').textContent = rupiah(subtotalPrice);
+    const btn = document.getElementById('payBtn');
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+}
+
+function fetchShippingCosts(zipCode) {
+    const container = document.getElementById('shippingOptions');
+    container.innerHTML = '<div style="padding:24px;text-align:center;"><div style="display:inline-block;width:24px;height:24px;border:3px solid #e0e0e0;border-top-color:#111;border-radius:50%;animation:spin .6s linear infinite;"></div><p style="margin-top:10px;font-size:13px;color:var(--muted);">Memuat opsi pengiriman...</p></div>';
+    resetShipping();
+
+    fetch('../config/shipping_cost.php?destination=' + encodeURIComponent(zipCode))
+        .then(r => r.json())
+        .then(res => {
+            if (!res.success || !res.data || res.data.length === 0) {
+                container.innerHTML = '<div style="padding:16px;text-align:center;color:#be123c;font-size:13px;background:#fff1f2;border:1px solid #fda4af;border-radius:12px;">' + (res.message || 'Tidak ada layanan pengiriman tersedia.') + '</div>';
+                return;
+            }
+
+            // Filter out extremely expensive / cargo services (above Rp100.000)
+            const services = res.data.filter(s => s.cost <= 100000);
+            if (services.length === 0) {
+                container.innerHTML = '<div style="padding:16px;text-align:center;color:#be123c;font-size:13px;background:#fff1f2;border:1px solid #fda4af;border-radius:12px;">Tidak ada layanan pengiriman reguler tersedia untuk tujuan ini.</div>';
+                return;
+            }
+
+            let html = '';
+            services.forEach((s, i) => {
+                const etdText = s.etd ? (' · ' + s.etd) : '';
+                html += `
+                <label class="payment-method" style="padding:14px;cursor:pointer;${i === 0 ? 'border-color:#111;' : ''}">
+                    <input type="radio" name="shipping_option" value="${i}" data-cost="${s.cost}" data-service="${s.name} - ${s.service}" onchange="onShippingSelect(this)" ${i === 0 ? 'checked' : ''} style="margin-top:2px;">
+                    <div style="flex:1;display:flex;flex-direction:column;gap:2px;">
+                        <span style="font-size:14px;font-weight:700;">${s.name}</span>
+                        <span style="font-size:12px;color:var(--muted);">${s.service}${s.description && s.description !== s.service ? ' — ' + s.description : ''}${etdText}</span>
+                    </div>
+                    <span style="margin-left:auto;font-weight:700;white-space:nowrap;">${rupiah(s.cost)}</span>
+                </label>`;
+            });
+
+            container.innerHTML = html;
+
+            // Auto-select first option
+            const firstRadio = container.querySelector('input[name="shipping_option"]');
+            if (firstRadio) onShippingSelect(firstRadio);
+        })
+        .catch(() => {
+            container.innerHTML = '<div style="padding:16px;text-align:center;color:#be123c;font-size:13px;background:#fff1f2;border:1px solid #fda4af;border-radius:12px;">Gagal memuat opsi pengiriman. Coba lagi.</div>';
+        });
+}
+
+function onShippingSelect(radio) {
+    const cost = parseInt(radio.dataset.cost, 10);
+    const service = radio.dataset.service;
+
+    document.getElementById('shippingCostInput').value = cost;
+    document.getElementById('shippingServiceInput').value = service;
+    document.getElementById('summaryOngkir').textContent = rupiah(cost);
+    document.getElementById('summaryTotal').textContent = rupiah(subtotalPrice + cost);
+
+    // Highlight selected
+    document.querySelectorAll('#shippingOptions .payment-method').forEach(el => el.style.borderColor = '');
+    radio.closest('.payment-method').style.borderColor = '#111';
+
+    const btn = document.getElementById('payBtn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+}
+
+// On page load, auto-fetch for the default-checked address
+document.addEventListener('DOMContentLoaded', function() {
+    const checked = document.querySelector('input[name="address_id"]:checked');
+    if (checked) {
+        const zip = checked.dataset.zipcode;
+        if (zip) fetchShippingCosts(zip);
+    }
+});
+</script>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
 </body>
 </html>
+

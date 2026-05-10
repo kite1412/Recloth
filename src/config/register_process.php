@@ -5,12 +5,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $address = trim($_POST['address'] ?? '');
+    $zip_code = trim($_POST['zip_code'] ?? '');
     $password = $_POST['password'] ?? '';
     $password_confirm = $_POST['password_confirm'] ?? '';
 
     // Validasi
-    if (empty($name) || empty($email) || empty($address) || empty($password) || empty($password_confirm)) {
+    if (empty($name) || empty($email) || empty($address) || empty($zip_code) || empty($password) || empty($password_confirm)) {
         header("Location: ../user/register.php?error=" . urlencode("Semua field harus diisi"));
+        exit;
+    }
+
+    if (!ctype_digit($zip_code)) {
+        header("Location: ../user/register.php?error=" . urlencode("Kode pos harus berupa angka"));
         exit;
     }
 
@@ -49,8 +55,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $userId = $pdo->lastInsertId();
 
         // Insert address
-        $stmt = $pdo->prepare("INSERT INTO user_addresses (user_id, address, is_default) VALUES (?, ?, 1)");
-        $stmt->execute([$userId, $address]);
+        $stmt = $pdo->prepare("INSERT INTO user_addresses (user_id, address, zip_code, is_default) VALUES (?, ?, ?, 1)");
+        $stmt->execute([$userId, $address, (int)$zip_code]);
 
         $pdo->commit();
         header("Location: ../user/register.php?success=" . urlencode("Pendaftaran berhasil! Silakan login."));

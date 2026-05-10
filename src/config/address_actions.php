@@ -15,10 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'add') {
             $label = trim($_POST['label'] ?? 'Rumah');
             $address = trim($_POST['address'] ?? '');
+            $zipCode = trim($_POST['zip_code'] ?? '');
             $isDefault = isset($_POST['is_default']) ? 1 : 0;
 
             if (empty($address)) {
                 throw new Exception("Alamat tidak boleh kosong.");
+            }
+
+            if (empty($zipCode) || !ctype_digit($zipCode)) {
+                throw new Exception("Kode pos harus diisi dan berupa angka.");
             }
 
             $pdo->beginTransaction();
@@ -27,8 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->prepare("UPDATE user_addresses SET is_default = 0 WHERE user_id = ?")->execute([$userId]);
             }
 
-            $stmt = $pdo->prepare("INSERT INTO user_addresses (user_id, label, address, is_default) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$userId, $label, $address, $isDefault]);
+            $stmt = $pdo->prepare("INSERT INTO user_addresses (user_id, label, address, zip_code, is_default) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$userId, $label, $address, (int)$zipCode, $isDefault]);
 
             $pdo->commit();
             header("Location: ../user/profile.php?success=1");
