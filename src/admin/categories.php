@@ -99,6 +99,8 @@ if ($action === 'add') {
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
       --sidebar-bg: #bac6a9;
       --sidebar-text: #4e5a42;
       --sidebar-active: #a8b696;
@@ -155,7 +157,7 @@ if ($action === 'add') {
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
     .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
     .btn-add {
-      background: var(--black); color: #fff; border: none; padding: 11px 20px;
+      background: var(--primary); color: #fff; border: none; padding: 11px 20px;
       border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600;
       cursor: pointer; display: flex; align-items: center; gap: 6px;
       font-family: var(--font); box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
@@ -207,7 +209,7 @@ if ($action === 'add') {
 
     .overlay { position: fixed; inset: 0; background: rgba(10,14,28,0.5); display: none; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px); }
     .overlay.show { display: flex; }
-    .modal { background: #fff; border-radius: 18px; width: 460px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.18); animation: slideUp 0.22s cubic-bezier(.34,1.56,.64,1); }
+    .modal { background: var(--main-bg); border-radius: 18px; width: 460px; max-width: 95vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 24px 64px rgba(0,0,0,0.18); animation: slideUp 0.22s cubic-bezier(.34,1.56,.64,1); }
     @keyframes slideUp { from { opacity: 0; transform: translateY(24px) scale(0.97); } to { opacity: 1; transform: none; } }
     .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
     .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
@@ -220,7 +222,7 @@ if ($action === 'add') {
     .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
     .form-group input {
       width: 100%; padding: 9px 12px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
-      font-size: 14px; outline: none; color: var(--text-primary); background: #fff; font-family: var(--font);
+      font-size: 14px; outline: none; color: var(--text-primary); background: rgba(255, 255, 255, 0.5); font-family: var(--font);
     }
     .form-group input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
 

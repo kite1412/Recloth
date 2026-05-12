@@ -19,6 +19,8 @@ require_once __DIR__ . '/../config/database.php';
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
       --sidebar-bg: #bac6a9;
       --sidebar-text: #4e5a42;
       --sidebar-active: #a8b696;

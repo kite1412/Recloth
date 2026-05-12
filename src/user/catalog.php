@@ -57,6 +57,8 @@ function e($text): string
 			font-style: normal;
 		}
         :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
             --bg: #f3eddf;
             --text: #2e3522;
             --muted: #6b735c;
@@ -150,8 +152,8 @@ function e($text): string
 			align-items: center;
 			justify-content: center;
 			text-decoration: none;
-			color: #111;
-			background: #fff;
+			color: #fff;
+			background: var(--primary);
 		}
 
 		.cart-icon svg {
@@ -180,8 +182,8 @@ function e($text): string
 
 		.auth-links .daftar {
 			color: #fff;
-			background: #111;
-			border: 1px solid #111;
+			background: var(--primary);
+			border: 1px solid var(--primary);
 		}
 
 		.breadcrumb {
@@ -197,7 +199,7 @@ function e($text): string
 			align-items: center;
 			justify-content: space-between;
 			margin-bottom: 14px;
-			background: #fff;
+			background: var(--white);
 			border: 1px solid var(--line);
 			border-radius: 12px;
 			padding: 12px 14px;
@@ -242,7 +244,7 @@ function e($text): string
 		}
 
 		.toolbar-form button {
-			background: #111;
+			background: var(--primary);
 			color: #fff;
 		}
 
@@ -258,7 +260,7 @@ function e($text): string
 		}
 
 		.card {
-			background: #fff;
+			background: var(--white);
 			border: 1px solid var(--line);
 			border-radius: 14px;
 			overflow: hidden;
@@ -356,7 +358,7 @@ function e($text): string
 			padding: 28px 10px;
 			text-align: center;
 			color: #676767;
-			background: #fff;
+			background: var(--white);
 		}
 
 		footer {
@@ -477,7 +479,7 @@ function e($text): string
 						<circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
 					</svg>
 				</a>
-				<a class="cart-icon" href="../config/logout.php" aria-label="Logout" style="color: #d24e4e;">
+				<a class="cart-icon" href="../config/logout.php" aria-label="Logout" style="color: #d24e4e; background: var(--bg); border-color: var(--line);">
 					<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 						<path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
 					</svg>

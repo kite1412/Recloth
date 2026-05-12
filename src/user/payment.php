@@ -219,6 +219,8 @@ function e($text): string {
             font-style: normal;
         }
         :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
             --bg: #f3eddf;
             --text: #2e3522;
             --muted: #6b735c;
@@ -299,8 +301,8 @@ function e($text): string {
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            color: #111;
-            background: #fff;
+            color: #fff;
+            background: var(--primary);
         }
 
         .cart-icon svg {
@@ -329,8 +331,8 @@ function e($text): string {
 
         .auth-links .daftar {
             color: #fff;
-            background: #111;
-            border: 1px solid #111;
+            background: var(--primary);
+            border: 1px solid var(--primary);
         }
 
         .breadcrumb {
@@ -357,7 +359,7 @@ function e($text): string {
         }
 
         .payment-box {
-            background: #fff;
+            background: var(--white);
             border: 1px solid var(--line);
             border-radius: var(--radius);
             padding: 24px;
@@ -441,7 +443,7 @@ function e($text): string {
 
         /* Payment Summary */
         .payment-summary {
-            background: #fff;
+            background: var(--white);
             border: 1px solid var(--line);
             border-radius: var(--radius);
             padding: 24px;
@@ -474,8 +476,8 @@ function e($text): string {
         .pay-btn {
             display: block;
             width: 100%;
-            background: var(--black);
-            color: var(--white);
+            background: #8b9d77;
+            color: #fff;
             text-align: center;
             text-decoration: none;
             padding: 14px;
@@ -660,7 +662,7 @@ function e($text): string {
         .modal-actions .btn-primary {
             display: block;
             width: 100%;
-            background: var(--black);
+            background: var(--primary);
             color: var(--white);
             text-decoration: none;
             padding: 14px;
@@ -767,7 +769,7 @@ function e($text): string {
                         <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </a>
-                <a class="cart-icon" href="../config/logout.php" aria-label="Logout" style="color: #d24e4e;">
+                <a class="cart-icon" href="../config/logout.php" aria-label="Logout" style="color: #d24e4e; background: var(--bg); border-color: var(--line);">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
@@ -829,7 +831,7 @@ function e($text): string {
                                         <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
                                             <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;"><?= e($addr['label']) ?></span>
                                             <?php if ($addr['is_default']): ?>
-                                                <span style="background: #111; color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 999px;">UTAMA</span>
+                                                <span style="background: var(--primary); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 999px;">UTAMA</span>
                                             <?php endif; ?>
                                         </div>
                                         <p style="font-size: 13px; font-weight: 500; color: var(--muted); line-height: 1.5;"><?= nl2br(e($addr['address'])) ?></p>

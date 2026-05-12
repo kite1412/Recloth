@@ -215,6 +215,8 @@ function e($text): string
             font-style: normal;
         }
         :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
             --bg: #f3eddf;
             --text: #2e3522;
             --muted: #6b735c;
@@ -295,8 +297,8 @@ function e($text): string
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            color: #111;
-            background: #fff;
+            color: #fff;
+            background: var(--primary);
         }
 
         .cart-icon svg {
@@ -325,8 +327,8 @@ function e($text): string
 
         .auth-links .daftar {
             color: #fff;
-            background: #111;
-            border: 1px solid #111;
+            background: var(--primary);
+            border: 1px solid var(--primary);
         }
 
         .breadcrumb {
@@ -353,7 +355,7 @@ function e($text): string
         }
 
         .cart-box {
-            background: #fff;
+            background: var(--white);
             border: 1px solid var(--line);
             border-radius: var(--radius);
             padding: 24px;
@@ -500,15 +502,15 @@ function e($text): string
             margin-top: 14px;
             text-decoration: none;
             font-weight: 700;
-            color: var(--white);
-            background: var(--black);
+            color: #fff;
+            background: var(--primary);
             padding: 10px 24px;
             border-radius: 999px;
         }
 
         /* Order Summary */
         .cart-summary {
-            background: #fff;
+            background: var(--white);
             border: 1px solid var(--line);
             border-radius: var(--radius);
             padding: 24px;
@@ -541,8 +543,8 @@ function e($text): string
         .checkout-btn {
             display: block;
             width: 100%;
-            background: var(--black);
-            color: var(--white);
+            background: #8b9d77;
+            color: #fff;
             text-align: center;
             text-decoration: none;
             padding: 14px;
@@ -657,8 +659,8 @@ function e($text): string
         }
 
         .tab-btn.active {
-            color: var(--white);
-            background: var(--black);
+            color: #fff;
+            background: var(--primary);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
@@ -711,7 +713,7 @@ function e($text): string
                             <circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </a>
-                    <a class="cart-icon" href="../config/logout.php" aria-label="Logout" style="color: #d24e4e;">
+                    <a class="cart-icon" href="../config/logout.php" aria-label="Logout" style="color: #d24e4e; background: var(--bg); border-color: var(--line);">
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
@@ -754,7 +756,7 @@ function e($text): string
                     <?php else: ?>
                         <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
                             <?php foreach ($userOrders as $order): ?>
-                                <div class="order-card" style="background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 16px;">
+                                <div class="order-card" style="background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 16px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
                                         <span style="font-size: 14px; font-weight: 700;">Order #<?= $order['id'] ?></span>
                                         <div style="display: flex; align-items: center; gap: 8px;">
@@ -850,7 +852,7 @@ function e($text): string
                                                         </span>
                                                         <button type="button"
                                                             onclick="navigator.clipboard.writeText('<?= e($order['payment_address']) ?>'); const btn = this; const ot = btn.innerText; btn.innerText = 'Tersalin!'; setTimeout(() => btn.innerText = ot, 2000);"
-                                                            style="background: var(--black); color: var(--white); border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-family: inherit; font-weight: 600; cursor: pointer; outline: none; flex-shrink: 0;">Salin</button>
+                                                            style="background: var(--primary); color: var(--white); border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-family: inherit; font-weight: 600; cursor: pointer; outline: none; flex-shrink: 0;">Salin</button>
                                                     </div>
                                                 </div>
                                             <?php endif; ?>

@@ -17,6 +17,8 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
             --bg: #f3eddf;
             --text: #2e3522;
             --muted: #6b735c;
@@ -72,7 +74,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
         .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(24, 24, 27, 0.25);
-            background: var(--black);
+            background: var(--primary-hover);
         }
         
         .btn-submit:hover::after {

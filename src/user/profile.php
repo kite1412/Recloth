@@ -56,6 +56,8 @@ $title = "Profil Saya - Recloth";
             font-style: normal;
         }
         :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
             --bg: #f3eddf;
             --text: #2e3522;
             --muted: #6b735c;
@@ -92,8 +94,8 @@ $title = "Profil Saya - Recloth";
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            color: #111;
-            background: #fff;
+            color: #fff;
+            background: var(--primary);
             transition: all 0.2s;
         }
 
@@ -129,18 +131,18 @@ $title = "Profil Saya - Recloth";
         .btn-update:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(24, 24, 27, 0.2);
-            background: var(--black);
+            background: var(--primary-hover);
         }
 
         .profile-card {
-            background: white;
+            background: var(--white);
             border: 1px solid var(--line);
             border-radius: 24px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.03);
         }
     </style>
 </head>
-<body class="min-h-screen bg-[#F8F8F8]">
+<body class="min-h-screen">
     
     <!-- Navbar -->
     <nav class="navbar sticky top-0 z-50 px-6 py-4">
@@ -155,7 +157,7 @@ $title = "Profil Saya - Recloth";
                         <circle cx="17.5" cy="19" r="1.2" fill="currentColor"/>
                     </svg>
                 </a>
-                <a href="../config/logout.php" class="cart-icon" aria-label="Logout" style="color: #d24e4e;">
+                <a href="../config/logout.php" class="cart-icon" aria-label="Logout" style="color: #d24e4e; background: var(--bg); border-color: var(--line);">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
@@ -292,7 +294,7 @@ $title = "Profil Saya - Recloth";
                                         <div class="flex items-center gap-2">
                                             <span class="text-xs font-bold uppercase tracking-wider text-gray-900"><?= htmlspecialchars($addr['label']) ?></span>
                                             <?php if ($addr['is_default']): ?>
-                                                <span class="bg-black text-white text-[10px] px-2 py-0.5 rounded-full font-bold">UTAMA</span>
+                                                <span class="bg-[var(--primary)] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">UTAMA</span>
                                             <?php endif; ?>
                                         </div>
                                         <p class="text-sm text-gray-600 leading-relaxed"><?= nl2br(htmlspecialchars($addr['address'])) ?></p>
@@ -324,8 +326,8 @@ $title = "Profil Saya - Recloth";
     </main>
 
     <!-- Modal Tambah Alamat -->
-    <div id="addressModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
-        <div class="bg-white rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div id="addressModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-6 bg-[var(--primary)]/50 backdrop-blur-sm">
+        <div class="bg-[var(--white)] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-bold">Tambah Alamat Baru</h3>
                 <button onclick="document.getElementById('addressModal').classList.add('hidden')" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
@@ -354,7 +356,7 @@ $title = "Profil Saya - Recloth";
                         <label for="is_default" class="text-sm font-medium text-gray-600">Jadikan alamat utama</label>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-black text-white py-4 rounded-xl font-bold text-sm shadow-xl hover:translate-y-[-2px] transition-all">
+                <button type="submit" class="w-full bg-[var(--primary)] text-white py-4 rounded-xl font-bold text-sm shadow-xl hover:translate-y-[-2px] transition-all">
                     Simpan Alamat
                 </button>
             </form>

@@ -43,6 +43,8 @@ $customers = array_values($customers);
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
+            --primary: #6a7f52;
+            --primary-hover: #526340;
       --sidebar-bg: #bac6a9;
       --sidebar-text: #4e5a42;
       --sidebar-active: #a8b696;
@@ -99,7 +101,7 @@ $customers = array_values($customers);
   .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
   .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
   .btn-export {
-    display: flex; align-items: center; gap: 8px; background: var(--black);
+    display: flex; align-items: center; gap: 8px; background: var(--primary);
     color: #fff; border: none; border-radius: var(--radius-sm); padding: 11px 20px;
     font-size: 13.5px; font-weight: 600; cursor: pointer; font-family: var(--font);
     box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
@@ -122,11 +124,10 @@ $customers = array_values($customers);
   .search-wrap { flex: 1; position: relative; }
   .search-wrap svg { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: #a0aab8; pointer-events: none; }
   .search-input {
-    width: 100%; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    width: 100%; border: none;
     padding: 9px 14px 9px 38px; font-size: 13.5px; font-family: var(--font);
-    color: var(--text-primary); background: var(--main-bg); outline: none; transition: border 0.16s;
+    color: var(--text-primary); background: transparent; outline: none;
   }
-  .search-input:focus { border-color: var(--blue); background: #fff; }
   .search-input::placeholder { color: #a0aab8; }
   .filter-select {
     border: 1.5px solid var(--border); border-radius: var(--radius-sm);
@@ -244,8 +245,7 @@ $customers = array_values($customers);
     backdrop-filter: blur(4px);
   }
   .modal-overlay.open { display: flex; }
-  .modal {
-    background: #fff; border-radius: 18px; width: 540px; max-width: 95vw;
+  .modal { background: var(--main-bg); border-radius: 18px; width: 540px; max-width: 95vw;
     box-shadow: 0 24px 64px rgba(0,0,0,0.18); animation: slideUp 0.22s cubic-bezier(.34,1.56,.64,1);
     max-height: 90vh; overflow-y: auto;
   }

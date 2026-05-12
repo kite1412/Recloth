@@ -91,7 +91,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
             </div>
             
             <div class="mt-12 pt-8 border-t border-gray-100 flex justify-center">
-                <a href="register.php" class="bg-black text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
+                <a href="register.php" class="bg-[var(--primary)] text-white px-8 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors">
                     Kembali ke Pendaftaran
                 </a>
             </div>
