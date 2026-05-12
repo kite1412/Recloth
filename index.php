@@ -63,14 +63,13 @@ function productImage(string $url): string
             font-weight: normal;
             font-style: normal;
         }
-
         :root {
-            --bg: #f4f4f4;
-            --text: #121212;
-            --muted: #808080;
-            --line: #e7e7e7;
-            --white: #ffffff;
-            --black: #000000;
+            --bg: #f3eddf;
+            --text: #2e3522;
+            --muted: #6b735c;
+            --line: #cbd5bb;
+            --white: #bac6a9;
+            --black: #36442c;
             --success: #1ea672;
             --danger: #d24e4e;
             --radius: 18px;
@@ -83,7 +82,7 @@ function productImage(string $url): string
         }
 
         body {
-            background: linear-gradient(180deg, #efefef 0%, #fafafa 65%, #f1f1f1 100%);
+            background: var(--bg);
             color: var(--text);
             font-family: "Montserrat", sans-serif;
             line-height: 1.4;
@@ -100,7 +99,7 @@ function productImage(string $url): string
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            background: var(--white);
+            background: var(--bg);
             border-bottom: 1px solid var(--line);
             padding: 16px 22px;
             border-radius: 0 0 14px 14px;
@@ -201,8 +200,8 @@ function productImage(string $url): string
             grid-template-columns: 1fr 1fr;
             gap: 26px;
             align-items: center;
-            background: #f0f0f0;
-            border-radius: 0 0 20px 20px;
+            background: var(--white);
+            border-radius: 20px;
             overflow: hidden;
             padding: 38px 34px;
         }

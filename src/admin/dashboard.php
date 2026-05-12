@@ -18,19 +18,18 @@ require_once __DIR__ . '/../config/database.php';
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --sidebar-bg: #ffffff;
-      --sidebar-text: #6f6f6f;
-      --sidebar-active: #f4f4f4;
-      --main-bg: #f4f4f4;
-      --card-bg: #ffffff;
-      --border: #e6e6e6;
-      --text-primary: #121212;
-      --text-secondary: #6f6f6f;
-      --black: #111111;
-      --blue: #111111;
-      --blue-light: #f4f4f4;
+      --sidebar-bg: #bac6a9;
+      --sidebar-text: #4e5a42;
+      --sidebar-active: #a8b696;
+      --main-bg: #f3eddf;
+      --card-bg: #bac6a9;
+      --border: #a4b391;
+      --text-primary: #2e3522;
+      --text-secondary: #4e5a42;
+      --black: #36442c;
+      --blue: #36442c;
+      --blue-light: #bac6a9;
       --green: #1ea672;
       --green-light: #e8f6f1;
       --yellow: #ca8a04;

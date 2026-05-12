@@ -17,10 +17,15 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #F4F4F5;
-            --black: #09090B;
-            --white: #FFFFFF;
-            --primary: #18181B;
+            --bg: #f3eddf;
+            --text: #2e3522;
+            --muted: #6b735c;
+            --line: #cbd5bb;
+            --white: #bac6a9;
+            --black: #36442c;
+            --success: #1ea672;
+            --danger: #d24e4e;
+            --radius: 18px;
         }
 
         body {

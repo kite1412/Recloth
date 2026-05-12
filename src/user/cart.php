@@ -214,15 +214,16 @@ function e($text): string
             font-weight: normal;
             font-style: normal;
         }
-
         :root {
-            --bg: #f4f4f4;
-            --text: #121212;
-            --muted: #6f6f6f;
-            --line: #e6e6e6;
-            --white: #ffffff;
-            --black: #111111;
-            --radius: 16px;
+            --bg: #f3eddf;
+            --text: #2e3522;
+            --muted: #6b735c;
+            --line: #cbd5bb;
+            --white: #bac6a9;
+            --black: #36442c;
+            --success: #1ea672;
+            --danger: #d24e4e;
+            --radius: 18px;
         }
 
         * {
@@ -232,7 +233,7 @@ function e($text): string
         }
 
         body {
-            background: linear-gradient(180deg, #efefef 0%, #fafafa 65%, #f1f1f1 100%);
+            background: var(--bg);
             color: var(--text);
             font-family: "Montserrat", sans-serif;
             line-height: 1.4;
@@ -250,7 +251,7 @@ function e($text): string
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            background: var(--white);
+            background: var(--bg);
             border-bottom: 1px solid var(--line);
             padding: 16px 22px;
             border-radius: 0 0 14px 14px;

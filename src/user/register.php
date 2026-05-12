@@ -22,13 +22,16 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
             font-weight: normal;
             font-style: normal;
         }
-
         :root {
-            --bg: #F4F4F5; /* zinc-100 */
-            --black: #09090B; /* zinc-950 */
-            --white: #FFFFFF;
-            --muted: #71717A; /* zinc-500 */
-            --primary: #18181B; /* zinc-900 */
+            --bg: #f3eddf;
+            --text: #2e3522;
+            --muted: #6b735c;
+            --line: #cbd5bb;
+            --white: #bac6a9;
+            --black: #36442c;
+            --success: #1ea672;
+            --danger: #d24e4e;
+            --radius: 18px;
         }
 
         * {
@@ -145,7 +148,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 md:p-6 lg:p-8">
     
-    <div class="w-full max-w-6xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row min-h-[650px] lg:min-h-[750px]">
+    <div class="w-full max-w-6xl bg-[var(--white)] rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row min-h-[650px] lg:min-h-[750px]">
         
         <!-- Left Side: Hero Image -->
         <div class="hero-section lg:w-5/12 hidden lg:flex flex-col justify-between relative text-white p-12">
@@ -186,7 +189,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
         </div>
 
         <!-- Right Side: Form -->
-        <div class="lg:w-7/12 flex flex-col justify-center items-center p-8 sm:p-12 md:p-16 relative bg-white">
+        <div class="lg:w-7/12 flex flex-col justify-center items-center p-8 sm:p-12 md:p-16 relative bg-[var(--white)]">
             <!-- Mobile back button -->
             <a href="../../index.php" class="lg:hidden absolute top-6 left-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

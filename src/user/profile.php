@@ -55,14 +55,16 @@ $title = "Profil Saya - Recloth";
             font-weight: normal;
             font-style: normal;
         }
-
         :root {
-            --bg: #F4F4F5;
-            --black: #09090B;
-            --white: #FFFFFF;
-            --muted: #71717A;
-            --primary: #18181B;
-            --line: #E4E4E7;
+            --bg: #f3eddf;
+            --text: #2e3522;
+            --muted: #6b735c;
+            --line: #cbd5bb;
+            --white: #bac6a9;
+            --black: #36442c;
+            --success: #1ea672;
+            --danger: #d24e4e;
+            --radius: 18px;
         }
 
         body {
@@ -77,7 +79,7 @@ $title = "Profil Saya - Recloth";
         }
 
         .navbar {
-            background: var(--white);
+            background: var(--bg);
             border-bottom: 1px solid var(--line);
         }
 
