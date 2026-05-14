@@ -27,7 +27,7 @@ if (file_exists($sourcePath)) {
 $dbHost = $config['DB_HOST'] ?? 'localhost';
 $dbName = $config['DB_NAME'] ?? 'recloth';
 $dbUser = $config['DB_USER'] ?? 'root';
-$dbPass = $config['DB_PASSWORD'] ?? '';
+$dbPass = $config['DB_PASSWORD'] ?? '123';
 
 $dsn = "mysql:host={$dbHost};dbname={$dbName};charset=utf8mb4";
 

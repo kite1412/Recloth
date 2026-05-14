@@ -64,17 +64,18 @@ function productImage(string $url): string
             font-style: normal;
         }
         :root {
-            --primary: #6a7f52;
-            --primary-hover: #526340;
-            --bg: #f3eddf;
-            --text: #2e3522;
-            --muted: #6b735c;
-            --line: #cbd5bb;
-            --white: #bac6a9;
-            --black: #36442c;
-            --success: #1ea672;
-            --danger: #d24e4e;
-            --radius: 18px;
+            --primary: #2d5a40; /* Deep elegant green */
+            --primary-glow: rgba(45, 90, 64, 0.5);
+            --accent: #D4AF37; /* Luxury Gold */
+            --accent-glow: rgba(212, 175, 55, 0.4);
+            --bg: #070707; /* Deep space black */
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #FFFFFF;
+            --muted: #A1A1AA;
+            --line: rgba(255, 255, 255, 0.1);
+            --sidebar-bg: #111111;
+            --radius: 20px;
         }
 
         * {
@@ -87,13 +88,36 @@ function productImage(string $url): string
             background: var(--bg);
             color: var(--text);
             font-family: "Montserrat", sans-serif;
-            line-height: 1.4;
+            line-height: 1.5;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
+
+        /* MASSIVE AMBIENT GLOW ORBS IN BACKGROUND */
+        body::before {
+            content: ''; position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(80px);
+            animation: floatGlow1 20s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: ''; position: fixed; bottom: -10%; right: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(100px);
+            animation: floatGlow2 25s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes floatGlow1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(100px, 100px) scale(1.2); } }
+        @keyframes floatGlow2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-100px, -100px) scale(1.3); } }
+        @keyframes gradientText { 0% { background-position: 0% 50%; } 100% { background-position: 100% 50%; } }
+        @keyframes floatCard { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 
         .site-wrap {
             max-width: 1240px;
             margin: 0 auto;
             padding: 0 20px 28px;
+            position: relative;
+            z-index: 1;
         }
 
         .navbar {
@@ -101,38 +125,61 @@ function productImage(string $url): string
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            background: var(--bg);
-            border-bottom: 1px solid var(--line);
-            padding: 16px 22px;
-            border-radius: 0 0 14px 14px;
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            padding: 16px 28px;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .brand {
             font-family: "Symphony", sans-serif;
-            font-size: 30px;
+            font-size: 42px;
             text-decoration: none;
-            color: var(--black);
+            color: var(--accent);
             letter-spacing: 1px;
-            margin-top: 5px;
+            padding: 5px 15px 10px 5px; /* Prevent cutting off cursive tails */
+            line-height: 1;
+            transition: transform 0.3s;
+            text-shadow: 0 2px 10px rgba(212,175,55,0.2);
         }
+        .brand:hover { transform: scale(1.02); }
 
         .menu {
             list-style: none;
             display: flex;
-            gap: 20px;
-            color: #2e2e2e;
+            gap: 24px;
             font-size: 14px;
         }
 
         .menu a {
-            color: #2e2e2e;
+            color: #FFFFFF;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            position: relative;
+            padding: 5px 0;
+            transition: color 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 13px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .menu a::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+            background: linear-gradient(90deg, var(--accent), #fef08a); transition: width 0.3s ease-in-out;
         }
 
         .menu a:hover {
-            color: #000;
+            color: var(--accent);
         }
+        .menu a:hover::after { width: 100%; }
 
         .search {
             flex: 1;
@@ -141,31 +188,39 @@ function productImage(string $url): string
 
         .search input {
             width: 100%;
-            border: 1px solid var(--line);
+            border: 1px solid rgba(255,255,255,0.2);
             border-radius: 999px;
-            padding: 11px 16px;
-            background: #f8f8f8;
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #FFFFFF;
             font-size: 13px;
+            font-family: "Montserrat", sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
         }
+        .search input::placeholder { color: rgba(255,255,255,0.7); }
+        .search input:focus { background: rgba(255,255,255,0.15); box-shadow: 0 0 0 4px rgba(212,175,55,0.2); outline: none; border-color: var(--accent); }
 
         .nav-actions {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 14px;
         }
 
         .cart-icon {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             border: 1px solid var(--line);
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            color: #fff;
-            background: var(--primary);
+            color: var(--text);
+            background: #FFFFFF;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .cart-icon:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--primary); color: var(--primary); }
 
         .cart-icon svg {
             width: 19px;
@@ -174,7 +229,7 @@ function productImage(string $url): string
 
         .auth-links {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
 
         .auth-links a {
@@ -182,91 +237,147 @@ function productImage(string $url): string
             font-size: 13px;
             font-weight: 700;
             border-radius: 999px;
-            padding: 10px 14px;
+            padding: 11px 18px;
+            transition: all 0.3s;
         }
 
         .auth-links .masuk {
-            color: #1d1d1d;
-            border: 1px solid #d9d9d9;
-            background: #fff;
+            color: var(--accent);
+            border: 1px solid var(--accent);
+            background: transparent;
         }
+        .auth-links .masuk:hover { background: var(--accent); color: #111; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(212,175,55,0.3); }
 
         .auth-links .daftar {
-            color: #fff;
-            background: var(--primary);
-            border: 1px solid var(--primary);
+            color: #111111;
+            background: linear-gradient(135deg, var(--accent) 0%, #fef08a 50%, var(--accent) 100%);
+            background-size: 200% auto; animation: gradientText 3s linear infinite, pulseGlow 3s infinite alternate;
+            border: none;
         }
+        .auth-links .daftar:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6); }
 
+        /* --- GLASSMORPHISM HERO --- */
         .hero {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 26px;
+            gap: 40px;
             align-items: center;
-            background: var(--white);
-            border-radius: 20px;
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(30px);
+            -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(212, 175, 55, 0.3); /* Gold rim light */
+            color: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(255,255,255,0.02);
+            padding: 56px 48px;
+            margin-top: 32px;
+            position: relative;
             overflow: hidden;
-            padding: 38px 34px;
+            animation: heroReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: translateY(20px);
         }
+        .hero::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 20% 80%, rgba(212, 175, 55, 0.15), transparent 50%);
+            animation: floatGlow1 8s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+        .hero::after {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 80% 20%, rgba(45, 90, 64, 0.3), transparent 50%);
+            animation: floatGlow2 10s ease-in-out infinite alternate-reverse;
+            pointer-events: none;
+        }
+        @keyframes floatGlow1 { 0% { transform: translate(0, 0) scale(1); opacity: 0.5; } 100% { transform: translate(30px, -30px) scale(1.2); opacity: 1; } }
+        @keyframes floatGlow2 { 0% { transform: translate(0, 0) scale(1); opacity: 0.5; } 100% { transform: translate(-30px, 30px) scale(1.3); opacity: 1; } }
+        @keyframes heroReveal { to { opacity: 1; transform: translateY(0); } }
+        @keyframes pulseGlow { 0% { box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4); } 100% { box-shadow: 0 10px 30px rgba(212, 175, 55, 0.8); } }
 
         .hero h1 {
             font-family: "Archivo Black", sans-serif;
-            font-size: clamp(36px, 5vw, 66px);
-            line-height: 0.95;
+            font-size: clamp(38px, 4.5vw, 64px);
+            line-height: 1.1;
             text-transform: uppercase;
-            margin-bottom: 14px;
+            margin-bottom: 20px;
+            color: #FFFFFF;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 2px;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .hero h1 span {
+            background: linear-gradient(135deg, var(--accent), #fef08a, var(--accent));
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradientText 3s linear infinite;
         }
 
         .hero p {
-            color: #565656;
-            margin-bottom: 22px;
-            font-size: 14px;
+            color: #F8F8F8; /* Maximum contrast white instead of gray */
+            margin-bottom: 36px;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.7;
+            position: relative;
+            z-index: 2;
         }
 
         .hero-btn {
-            display: inline-block;
-            background: #8b9d77;
-            color: #fff;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, var(--accent), #fef08a, var(--accent));
+            background-size: 200% auto; animation: gradientShift 3s ease infinite, pulseGlow 3s infinite alternate;
+            color: #111111;
             border-radius: 999px;
             text-decoration: none;
-            font-weight: 700;
-            padding: 13px 28px;
-            margin-bottom: 26px;
-            font-size: 13px;
+            font-weight: 800;
+            padding: 16px 36px;
+            margin-bottom: 36px;
+            font-size: 14px;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.4);
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            z-index: 2;
         }
+        .hero-btn:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 12px 25px rgba(212, 175, 55, 0.5); }
 
         .hero-stats {
             display: flex;
-            gap: 26px;
+            gap: 40px;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 2;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .hero-stats strong {
             display: block;
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
-            color: var(--black);
+            color: var(--accent);
         }
 
         .hero-stats span {
             font-size: 12px;
-            color: #787878;
+            color: #E2E8F0; /* Brighter color to avoid camouflage */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
         }
 
         .hero-image {
-            min-height: 420px;
+            min-height: 440px;
             border-radius: 16px;
             background: url("https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80") center/cover no-repeat;
             position: relative;
             isolation: isolate;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        .hero-image::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, transparent 28%, rgba(0, 0, 0, 0.22));
-            z-index: -1;
-        }
+        .hero:hover .hero-image { transform: scale(1.02) translateY(-4px); }
 
         .section {
             margin-top: 52px;
@@ -277,153 +388,229 @@ function productImage(string $url): string
         .section h2 {
             text-align: center;
             font-family: "Archivo Black", sans-serif;
+            font-weight: 800;
+            font-size: clamp(36px, 4vw, 48px);
+            margin-bottom: 60px;
+            background: linear-gradient(to right, #FFFFFF, var(--accent), #FFFFFF);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: gradientText 6s linear infinite;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            font-size: clamp(28px, 3.5vw, 44px);
-            margin-bottom: 24px;
+            letter-spacing: 4px;
+        }
+        .section h2::after {
+            content: ''; display: block; width: 100px; height: 6px;
+            background: linear-gradient(90deg, var(--accent), #fef08a, var(--accent)); 
+            background-size: 200% auto; animation: gradientShift 3s ease infinite, pulseGlow 2s infinite alternate;
+            margin: 20px auto 0; border-radius: 999px;
         }
 
         .products {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 18px;
+            gap: 24px;
         }
 
+        /* --- GLASS PRODUCT CARDS --- */
         .card {
-            background: var(--white);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 14px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 20px;
+            padding: 16px;
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            animation: floatCard 8s ease-in-out infinite, pulseGlowCard 4s infinite alternate;
+            animation-delay: calc(var(--i, 0) * 0.4s);
+            overflow: hidden;
         }
+        @keyframes pulseGlowCard {
+            0% { box-shadow: 0 5px 15px rgba(212, 175, 55, 0.05); }
+            100% { box-shadow: 0 15px 35px rgba(212, 175, 55, 0.25); }
+        }
+        
+        .card::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.15), transparent 70%);
+            opacity: 0; transition: opacity 0.5s; pointer-events: none;
+            border-radius: 20px;
+        }
+        .card:hover::before { opacity: 1; }
 
-        .card-link {
-            color: inherit;
-            text-decoration: none;
-            display: block;
+        /* Card Hover Sweep */
+        .card::after {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: skewX(-20deg); transition: 0.7s; z-index: 1; pointer-events: none;
         }
+        .card:hover::after { left: 150%; }
+
+        .card-link { color: inherit; text-decoration: none; display: block; position: relative; z-index: 2; }
 
         .card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            transform: translateY(-15px) scale(1.03);
+            background: rgba(30, 30, 30, 0.6);
+            border-top: 1px solid var(--accent);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 30px rgba(212,175,55,0.2);
         }
 
         .card img {
             width: 100%;
-            height: 220px;
+            height: 240px;
             object-fit: cover;
             border-radius: 12px;
-            background: #ededed;
+            background: #222;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .card:hover img { transform: scale(1.08); }
+        .card .img-wrapper { overflow: hidden; border-radius: 12px; margin-bottom: 16px; position: relative; }
 
         .card h3 {
-            margin-top: 10px;
-            font-size: 14px;
-            min-height: 38px;
+            margin-top: 8px;
+            font-size: 15px;
+            font-weight: 800;
+            min-height: 44px;
+            color: #FFFFFF;
+            line-height: 1.4;
+            transition: all 0.3s;
+        }
+        .card:hover h3 { 
+            background: linear-gradient(90deg, var(--accent), #fef08a, var(--accent));
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientText 2s linear infinite;
         }
 
         .price {
-            margin-top: 7px;
+            margin-top: 12px;
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-weight: 700;
+            gap: 10px;
+            font-weight: 800;
+            font-size: 17px;
+            color: var(--accent);
         }
 
         .price del {
-            color: #959595;
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
             font-weight: 500;
-            font-size: 13px;
+            -webkit-text-fill-color: initial;
         }
 
         .discount {
-            color: var(--danger);
+            color: #111;
             font-size: 11px;
-            background: #ffecec;
-            border-radius: 999px;
-            padding: 3px 9px;
-            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #fef08a);
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-weight: 800;
+            box-shadow: 0 4px 10px rgba(212,175,55,0.3);
         }
 
         .view-all {
-            margin: 26px auto 4px;
+            margin: 50px auto 16px;
             width: max-content;
-            border: 1px solid #d4d4d4;
+            background: linear-gradient(135deg, var(--accent) 0%, #fef08a 50%, var(--accent) 100%);
+            background-size: 200% auto; animation: gradientShift 4s ease infinite, pulseGlow 3s infinite alternate;
+            border: 2px solid var(--accent);
             border-radius: 999px;
-            padding: 9px 24px;
+            padding: 16px 40px;
             text-decoration: none;
-            font-size: 13px;
-            color: #383838;
+            font-size: 15px;
+            font-weight: 800;
+            color: #111111;
             display: block;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(212,175,55,0.3);
         }
+        .view-all:hover { transform: translateY(-5px) scale(1.05); box-shadow: 0 15px 40px rgba(212,175,55,0.4); }
 
         .reviews {
-            margin-top: 52px;
+            margin-top: 64px;
         }
 
         .reviews h2 {
             text-align: left;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .review-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
+            gap: 20px;
         }
 
+        /* --- GLASS REVIEWS --- */
         .review {
-            background: var(--white);
-            border: 1px solid var(--line);
-            border-radius: 14px;
-            padding: 14px;
+            background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border); border-top: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: var(--radius); padding: 40px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); position: relative; overflow: hidden;
+            animation: floatCard 8s infinite alternate-reverse;
         }
+        .review::before {
+            content: "“"; position: absolute; top: -20px; right: 20px;
+            font-size: 140px; font-family: "Symphony", sans-serif;
+            color: rgba(212, 175, 55, 0.1); line-height: 1; transition: color 0.5s;
+        }
+        .review:hover { transform: translateY(-15px) scale(1.03); background: rgba(30,30,30,0.6); border-top-color: var(--accent); box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 30px rgba(212,175,55,0.15); }
+        .review:hover::before { color: rgba(212, 175, 55, 0.3); }
 
         .review .stars {
-            color: #f6a623;
-            font-size: 13px;
-            margin-bottom: 7px;
+            color: var(--accent);
+            font-size: 14px;
+            margin-bottom: 12px;
         }
 
         .review h4 {
-            font-size: 14px;
-            margin-bottom: 7px;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #FFFFFF;
+            font-weight: 800;
         }
 
         .review p {
-            color: #666;
-            font-size: 12px;
+            color: #A1A1AA;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
+        /* --- GLASS FOOTER --- */
         footer {
-            margin-top: 64px;
-            display: grid;
-            grid-template-columns: 1.4fr repeat(2, 1fr);
-            gap: 20px;
-            font-size: 13px;
-            color: #4f4f4f;
+            margin-top: 100px; margin-bottom: 40px;
+            display: grid; grid-template-columns: 1.4fr repeat(2, 1fr); gap: 40px;
+            padding: 60px;
+            background: rgba(20, 20, 20, 0.4); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            border: 1px solid var(--glass-border); border-top: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.6), inset 0 0 30px rgba(255,255,255,0.02);
+            position: relative; overflow: hidden;
+        }
+        footer::after {
+            content: ''; position: absolute; bottom: 0; right: 0; width: 50%; height: 100%;
+            background: radial-gradient(circle at bottom right, rgba(45,90,64,0.15), transparent 60%); pointer-events: none;
         }
 
-        footer h5 {
-            margin-bottom: 12px;
-            font-size: 12px;
-            color: #0f0f0f;
-            letter-spacing: 0.7px;
-            text-transform: uppercase;
-        }
-
-        footer ul {
-            list-style: none;
-            display: grid;
-            gap: 8px;
-        }
+        footer h5 { margin-bottom: 20px; font-size: 14px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 800; }
+        footer p { color: #A1A1AA; line-height: 1.8; font-size: 14px; margin-top: 16px; max-width: 90%; }
+        footer ul { list-style: none; display: grid; gap: 16px; }
+        footer ul li { color: #E2E8F0; font-size: 14px; font-weight: 500; transition: color 0.3s; cursor: pointer; }
+        footer ul li:hover { color: var(--accent); }
 
         .copyright {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--line);
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255,255,255,0.1);
             color: #777;
             font-size: 12px;
+            grid-column: 1 / -1;
+            text-align: center;
         }
 
         @media (max-width: 1080px) {
@@ -536,7 +723,7 @@ function productImage(string $url): string
 
         <header class="hero">
             <div>
-                <h1>Temukan Baju Thrift Sesuai Gayamu</h1>
+                <h1>Temukan Baju <span>Thrift</span> Sesuai Gayamu</h1>
                 <p>
                     Recloth adalah platform e-commerce berbasis web yang menawarkan pakaian thrift berkualitas pilihan.
                     Setiap produk dikurasi dengan teliti, sehingga kamu bisa tampil stylish dengan harga terjangkau dan
@@ -547,15 +734,15 @@ function productImage(string $url): string
                 <div class="hero-stats">
                     <div>
                         <strong>200+</strong>
-                        <span>Produk Thrift Terkurasi</span>
+                        <span>Produk Terkurasi</span>
                     </div>
                     <div>
-                        <strong>2,000+</strong>
-                        <span>Pembeli Terlayani</span>
+                        <strong>2K+</strong>
+                        <span>Pelanggan</span>
                     </div>
                     <div>
-                        <strong>30,000+</strong>
-                        <span>Pesanan Terselesaikan</span>
+                        <strong>30K+</strong>
+                        <span>Pesanan Selesai</span>
                     </div>
                 </div>
             </div>
@@ -571,7 +758,9 @@ function productImage(string $url): string
                     <?php $before = oldPrice((float) $product['price'], $discount); ?>
                     <article class="card">
                         <a class="card-link" href="src/user/detail_product.php?id=<?= (int) $product['id'] ?>">
-                            <img src="<?= htmlspecialchars(productImage((string) ($product['image'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                            <div class="img-wrapper">
+                                <img src="<?= htmlspecialchars(productImage((string) ($product['image'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                            </div>
                             <h3><?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
                             <div class="price">
                                 <span><?= formatRupiah((float) $product['price']) ?></span>
@@ -595,7 +784,9 @@ function productImage(string $url): string
                     <?php $before = oldPrice((float) $product['price'], $discount); ?>
                     <article class="card">
                         <a class="card-link" href="src/user/detail_product.php?id=<?= (int) $product['id'] ?>">
-                            <img src="<?= htmlspecialchars(productImage((string) ($product['image'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                            <div class="img-wrapper">
+                                <img src="<?= htmlspecialchars(productImage((string) ($product['image'] ?? '')), ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?>">
+                            </div>
                             <h3><?= htmlspecialchars((string) $product['name'], ENT_QUOTES, 'UTF-8') ?></h3>
                             <div class="price">
                                 <span><?= formatRupiah((float) $product['price']) ?></span>

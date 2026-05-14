@@ -301,7 +301,7 @@ function e($text): string
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			color: #767676;
+			color: #2e3522;
 			font-size: 13px;
 			padding: 8px;
 			text-align: center;
@@ -339,7 +339,7 @@ function e($text): string
 
 		.old-price {
 			font-size: 17px;
-			color: #8d8d8d;
+			color: #2e3522;
 			text-decoration: line-through;
 		}
 
@@ -357,7 +357,7 @@ function e($text): string
 			border-radius: 14px;
 			padding: 28px 10px;
 			text-align: center;
-			color: #676767;
+			color: #2e3522;
 			background: var(--white);
 		}
 
@@ -367,7 +367,7 @@ function e($text): string
 			grid-template-columns: 1.4fr repeat(2, 1fr);
 			gap: 20px;
 			font-size: 13px;
-			color: #4f4f4f;
+			color: #2e3522;
 		}
 
 		footer h5 {
@@ -388,7 +388,7 @@ function e($text): string
 			margin-top: 20px;
 			padding-top: 16px;
 			border-top: 1px solid var(--line);
-			color: #777;
+			color: #2e3522;
 			font-size: 12px;
 		}
 

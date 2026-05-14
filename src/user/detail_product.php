@@ -390,7 +390,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			background: #fafafa;
 			padding: 6px 10px;
 			font-size: 12px;
-			color: #3f3f3f;
+			color: #2e3522;
 			font-weight: 600;
 		}
 
@@ -416,7 +416,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 
 		.old-price {
 			font-size: 17px;
-			color: #8d8d8d;
+			color: #2e3522;
 			text-decoration: line-through;
 		}
 
@@ -430,7 +430,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 		}
 
 		.description {
-			color: #3b3b3b;
+			color: #2e3522;
 			font-size: 14px;
 			margin-bottom: 14px;
 			white-space: pre-line;
@@ -498,7 +498,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			grid-template-columns: 1.4fr repeat(2, 1fr);
 			gap: 20px;
 			font-size: 13px;
-			color: #4f4f4f;
+			color: #2e3522;
 		}
 
 		footer h5 {
@@ -519,7 +519,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			margin-top: 20px;
 			padding-top: 16px;
 			border-top: 1px solid var(--line);
-			color: #777;
+			color: #2e3522;
 			font-size: 12px;
 		}
 
