@@ -2,19 +2,7 @@
 // =============================================
 // Database Connection
 // =============================================
-$host = 'localhost';
-$dbname = 'recloth';
-$user = 'root';
-$pass = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $user, $pass, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-    ]);
-} catch (PDOException $e) {
-    die(json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]));
-}
+require_once __DIR__ . '/../config/database.php';
 
 // =============================================
 // AJAX Handler
@@ -99,70 +87,107 @@ if ($action === 'add') {
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-            --primary: #6a7f52;
-            --primary-hover: #526340;
-      --sidebar-bg: #bac6a9;
-      --sidebar-text: #4e5a42;
-      --sidebar-active: #a8b696;
-      --main-bg: #f3eddf;
-      --card-bg: #bac6a9;
-      --border: #a4b391;
-      --text-primary: #2e3522;
-      --text-secondary: #4e5a42;
-      --black: #36442c;
-      --blue: #36442c;
-      --blue-light: #bac6a9;
-      --green: #1ea672;
-      --green-light: #e8f6f1;
-      --yellow: #ca8a04;
-      --yellow-light: #fef9c3;
-      --red: #d24e4e;
-      --red-light: #fbeeee;
-      --gray: #6f6f6f;
-      --gray-light: #f1f1f1;
-      --shadow: 0 8px 18px rgba(17, 17, 17, 0.04);
-      --radius: 16px;
-      --radius-sm: 8px;
+      --primary: #1b4332;
+      --primary-hover: #081c15;
+      --accent: #d4af37;
+      --accent-light: rgba(212, 175, 55, 0.15);
+      --sidebar-bg: linear-gradient(180deg, #0a120e 0%, #050806 100%);
+      --sidebar-text: #a3b8ad;
+      --sidebar-active-bg: linear-gradient(90deg, rgba(212, 175, 55, 0.15) 0%, transparent 100%);
+      --main-bg: #fdfcfaf0;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --border: rgba(212, 175, 55, 0.2);
+      --text-primary: #1a1f1c;
+      --text-secondary: #606d66;
+      --black: #0a120e;
+      --blue: #2d6a4f;
+      --blue-light: rgba(45,106,79,0.08);
+      --green: #10b981;
+      --green-light: #ecfdf5;
+      --yellow: #f59e0b;
+      --yellow-light: #fffbeb;
+      --red: #ef4444;
+      --red-light: #fef2f2;
+      --gray: #9ca3af;
+      --gray-light: #f3f4f6;
+      --shadow: 0 8px 24px rgba(27,67,50,0.06);
+      --shadow-lg: 0 16px 40px rgba(27,67,50,0.12);
+      --radius: 20px;
+      --radius-sm: 12px;
       --font: 'Montserrat', sans-serif;
       --font-title: 'Archivo Black', sans-serif;
       --mono: 'JetBrains Mono', monospace;
     }
 
-    body { font-family: var(--font); background: var(--main-bg); color: var(--text-primary); display: flex; min-height: 100vh; font-size: 14px; overflow-y: auto; }
+    body { 
+        font-family: var(--font); background: var(--main-bg); color: var(--text-primary); 
+        display: flex; min-height: 100vh; font-size: 14px; position: relative; overflow-x: hidden;
+    }
+    body::before {
+        content: ''; position: fixed; top: -20%; left: 10%; width: 50vw; height: 50vw;
+        background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 60%);
+        border-radius: 50%; animation: floatBg 15s infinite alternate ease-in-out; z-index: -1;
+    }
+    body::after {
+        content: ''; position: fixed; bottom: -20%; right: -10%; width: 60vw; height: 60vw;
+        background: radial-gradient(circle, rgba(27, 67, 50, 0.06) 0%, transparent 60%);
+        border-radius: 50%; animation: floatBg 20s infinite alternate-reverse ease-in-out; z-index: -1;
+    }
+    @keyframes floatBg {
+        0% { transform: translate(0, 0) scale(1); }
+        100% { transform: translate(30px, 40px) scale(1.1); }
+    }
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(212, 175, 55, 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(212, 175, 55, 0.6); }
 
     .sidebar {
-      width: 230px; min-height: 100vh; background: var(--sidebar-bg);
-      display: flex; flex-direction: column; padding: 28px 0;
-      position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; border-right: 1px solid var(--border);
+      width: 260px; min-height: 100vh; background: var(--sidebar-bg);
+      display: flex; flex-direction: column; padding: 32px 0;
+      position: fixed; top: 0; left: 0; bottom: 0; z-index: 10;
+      box-shadow: 4px 0 30px rgba(0,0,0,0.3); border-right: 1px solid rgba(255,255,255,0.03);
     }
-    .sidebar-brand { padding: 0 24px 32px; }
-    .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 30px; font-weight: normal; color: var(--black); letter-spacing: 1px; }
-    .sidebar-brand .brand-sub { display: none; }
-    .sidebar-nav { flex: 1; }
+    .sidebar::before { content: ''; position: absolute; inset: 0; background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiIvPjwvc3ZnPg=='); opacity: 0.6; pointer-events: none; }
+    .sidebar-brand { padding: 0 28px 40px; position: relative; }
+    .sidebar-brand .brand-title { font-family: 'Symphony', sans-serif; font-size: 38px; font-weight: normal; color: var(--accent); letter-spacing: 1.5px; text-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+    .sidebar-brand .brand-sub { display: block; font-size: 11px; font-weight: 700; color: #8fa399; text-transform: uppercase; letter-spacing: 3px; margin-top: 6px; }
+    .sidebar-nav { flex: 1; padding: 0 16px; position: relative; }
     .nav-item {
-      display: flex; align-items: center; gap: 12px; padding: 11px 20px 11px 24px;
-      color: var(--sidebar-text); cursor: pointer; font-size: 14px; font-weight: 500;
-      transition: all 0.18s; border-left: 3px solid transparent; margin: 1px 0;
-      text-decoration: none;
+      display: flex; align-items: center; gap: 14px; padding: 14px 18px;
+      color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 12px; margin: 4px 0;
+      text-decoration: none; position: relative; overflow: hidden;
     }
-    .nav-item:hover { background: #fafafa; color: var(--black); }
-    .nav-item.active { background: var(--sidebar-active); color: var(--black); border-radius: 0 8px 8px 0; margin-right: 12px; border-left: 3px solid var(--black); font-weight: 600; }
-    .nav-item svg { width: 17px; height: 17px; flex-shrink: 0; }
-    .sidebar-bottom { padding: 16px 24px 0; border-top: 1px solid var(--border); margin-top: 16px; }
-    .nav-logout { display: flex; align-items: center; gap: 10px; color: var(--sidebar-text); cursor: pointer; font-size: 13.5px; font-weight: 500; padding: 8px 0; transition: color 0.15s; }
-    .nav-logout:hover { color: var(--red); }
+    .nav-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: var(--sidebar-active-bg); transition: width 0.3s ease; z-index: 0; }
+    .nav-item:hover::before { width: 100%; }
+    .nav-item:hover { color: var(--accent); transform: translateX(4px); }
+    .nav-item.active { color: var(--accent); box-shadow: inset 0 0 0 1px rgba(212, 175, 55, 0.2); }
+    .nav-item.active::before { width: 100%; border-left: 3px solid var(--accent); }
+    .nav-item svg, .nav-item span { position: relative; z-index: 1; }
+    .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; transition: transform 0.3s; }
+    .nav-item:hover svg { transform: scale(1.1); }
+    .sidebar-bottom { padding: 20px 24px 0; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 16px; position: relative; }
+    .nav-logout { display: flex; align-items: center; gap: 12px; color: var(--sidebar-text); cursor: pointer; font-size: 13px; font-weight: 600; padding: 12px 6px; transition: all 0.3s; text-decoration: none; }
+    .nav-logout:hover { color: #fca5a5; transform: translateX(4px); }
 
-    .main { margin-left: 230px; flex: 1; padding: 36px 40px; overflow-y: auto; min-height: 100vh; }
+    .main { margin-left: 260px; flex: 1; padding: 48px 52px; min-height: 100vh; position: relative; z-index: 1; }
 
-    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-    .page-header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.6px; color: var(--black); }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; animation: slideDown 0.6s ease-out; }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: none; } }
+    .page-header h1 { 
+        font-size: 34px; font-weight: 800; letter-spacing: -1px; 
+        background: linear-gradient(135deg, var(--primary) 0%, #3a7c5c 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        text-shadow: 0 4px 20px rgba(27,67,50,0.15);
+    }
     .btn-add {
-      background: var(--primary); color: #fff; border: none; padding: 11px 20px;
-      border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 600;
-      cursor: pointer; display: flex; align-items: center; gap: 6px;
-      font-family: var(--font); box-shadow: 0 2px 8px rgba(17,17,17,0.25); transition: all 0.18s;
+      background: linear-gradient(135deg, var(--primary), #10b981, var(--primary)); background-size: 200% auto; animation: gradientShift 3s ease infinite;
+      color: #fff; border: 1px solid rgba(255,255,255,0.2); padding: 14px 26px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; gap: 10px; font-family: var(--font); box-shadow: 0 4px 15px rgba(16,185,129,0.4); transition: all 0.3s;
     }
-    .btn-add:hover { background: #333; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(17,17,17,0.35); }
+    @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .btn-add:hover { box-shadow: 0 8px 25px rgba(16,185,129,0.6); transform: translateY(-3px); }
 
     .search-box {
       background: var(--card-bg); border-radius: var(--radius); border: 1px solid var(--border);
@@ -175,10 +200,20 @@ if ($action === 'add') {
 
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
     .cat-card {
-      background: var(--card-bg); border-radius: var(--radius); border: 1.5px solid var(--border);
-      padding: 20px; display: flex; flex-direction: column; transition: all 0.2s; box-shadow: var(--shadow);
+      background: var(--card-bg); backdrop-filter: blur(16px);
+      border-radius: var(--radius); border: 1px solid rgba(255,255,255,0.6);
+      padding: 24px; display: flex; flex-direction: column; transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); 
+      box-shadow: var(--shadow); position: relative; overflow: hidden;
     }
-    .cat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); border-color: #d0d8ee; }
+    .cat-card::before {
+        content: ''; position: absolute; inset: 0; border-radius: var(--radius);
+        padding: 2px; background: linear-gradient(135deg, var(--accent), var(--primary));
+        -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor; mask-composite: exclude;
+        opacity: 0; transition: opacity 0.4s; pointer-events: none;
+    }
+    .cat-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: var(--shadow-lg); }
+    .cat-card:hover::before { opacity: 1; }
     .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
     .cat-icon {
       width: 48px; height: 48px; border-radius: 12px; background: var(--blue-light);
@@ -250,8 +285,8 @@ if ($action === 'add') {
 
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <div class="brand-title">Admin Panel</div>
-    <div class="brand-sub">E-Commerce Dashboard</div>
+    <div class="brand-title">Recloth</div>
+    <div class="brand-sub">Admin Panel</div>
   </div>
   <nav class="sidebar-nav">
     <a href="dashboard.php" class="nav-item">

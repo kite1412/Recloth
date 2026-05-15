@@ -208,483 +208,103 @@ function e($text): string
         href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Montserrat:wght@400;500;600;700&display=swap"
         rel="stylesheet">
     <style>
-        @font-face {
-            font-family: 'Symphony';
-            src: url('/Recloth/public/fonts/symphony-pro-regular.otf') format('opentype');
-            font-weight: normal;
-            font-style: normal;
-        }
+        @font-face { font-family: 'Symphony'; src: url('/Recloth/public/fonts/symphony-pro-regular.otf') format('opentype'); font-weight: normal; font-style: normal; }
         :root {
-            --primary: #6a7f52;
-            --primary-hover: #526340;
-            --bg: #f3eddf;
-            --text: #2e3522;
-            --muted: #6b735c;
-            --line: #cbd5bb;
-            --white: #bac6a9;
-            --black: #36442c;
-            --success: #1ea672;
-            --danger: #d24e4e;
-            --radius: 18px;
+            --primary: #2d5a40; --primary-hover: #1b4332; --primary-glow: rgba(45, 90, 64, 0.5);
+            --accent: #D4AF37; --accent-glow: rgba(212, 175, 55, 0.4);
+            --bg: #070707; --glass-bg: rgba(255, 255, 255, 0.03); --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #FFFFFF; --muted: #A1A1AA; --line: rgba(255, 255, 255, 0.1);
+            --white: rgba(20, 20, 20, 0.4); --black: #FFFFFF;
+            --success: #10b981; --danger: #ef4444; --radius: 18px;
         }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: "Montserrat", sans-serif; line-height: 1.4; overflow-x: hidden; -webkit-font-smoothing: antialiased; }
+        body::before { content: ''; position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw; background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%); border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(80px); animation: floatGlow1 20s ease-in-out infinite alternate; }
+        body::after { content: ''; position: fixed; bottom: -10%; right: -10%; width: 60vw; height: 60vw; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%); border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(100px); animation: floatGlow2 25s ease-in-out infinite alternate-reverse; }
+        @keyframes floatGlow1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(100px, 100px) scale(1.2); } }
+        @keyframes floatGlow2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-100px, -100px) scale(1.3); } }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        .site-wrap { max-width: 1240px; margin: 0 auto; padding: 0 20px 28px; position: relative; z-index: 1; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            font-family: "Montserrat", sans-serif;
-            line-height: 1.4;
-        }
+        .navbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: rgba(10,10,10,0.6); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid var(--glass-border); border-top: none; padding: 16px 22px; border-radius: 0 0 24px 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 100; margin-bottom: 18px; }
+        .brand { font-family: "Symphony", sans-serif; font-size: 30px; text-decoration: none; color: var(--accent); letter-spacing: 1px; margin-top: 5px; text-shadow: 0 2px 10px rgba(212,175,55,0.2); }
+        .menu { list-style: none; display: flex; gap: 20px; font-size: 14px; }
+        .menu a { color: #FFFFFF; text-decoration: none; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; transition: color 0.3s; position: relative; padding: 5px 0; }
+        .menu a::after { content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px; background: linear-gradient(90deg, var(--accent), #fef08a); transition: width 0.3s ease-in-out; }
+        .menu a:hover { color: var(--accent); }
+        .menu a:hover::after { width: 100%; }
 
-        .site-wrap {
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 0 20px 28px;
-        }
+        .nav-actions { display: flex; gap: 8px; align-items: center; }
+        .cart-icon { width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; color: var(--text); background: rgba(255,255,255,0.05); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .cart-icon:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--accent); }
+        .cart-icon svg { width: 19px; height: 19px; }
 
-        /* --- Navbar Styles dari catalog.php --- */
-        .navbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            background: var(--bg);
-            border-bottom: 1px solid var(--line);
-            padding: 16px 22px;
-            border-radius: 0 0 14px 14px;
-            margin-bottom: 18px;
-        }
+        .auth-links { display: flex; gap: 8px; }
+        .auth-links a { text-decoration: none; font-size: 13px; font-weight: 700; border-radius: 999px; padding: 10px 14px; transition: all 0.3s; }
+        .auth-links .masuk { color: var(--accent); border: 1px solid var(--accent); background: transparent; }
+        .auth-links .masuk:hover { background: var(--accent); color: #111; transform: translateY(-2px); }
+        .auth-links .daftar { color: #111; background: linear-gradient(135deg, var(--accent) 0%, #fef08a 50%, var(--accent) 100%); background-size: 200% auto; border: none; }
+        .auth-links .daftar:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212,175,55,0.6); }
 
-        .brand {
-            font-family: "Symphony", sans-serif;
-            font-size: 30px;
-            text-decoration: none;
-            color: var(--black);
-            letter-spacing: 1px;
-            margin-top: 5px;
-        }
+        .breadcrumb { margin: 6px 0 14px; font-size: 12px; color: var(--muted); }
+        .breadcrumb a { color: var(--muted); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--accent); }
 
-        .menu {
-            list-style: none;
-            display: flex;
-            gap: 20px;
-            font-size: 14px;
-        }
+        /* Cart Layout */
+        .cart-layout { display: grid; grid-template-columns: 1fr 350px; gap: 24px; align-items: start; }
+        .cart-box { background: rgba(20,20,20,0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-top: 1px solid rgba(212,175,55,0.2); border-radius: var(--radius); padding: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .cart-box h2, .cart-summary h3 { font-size: 20px; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--line); color: #FFFFFF; }
 
-        .menu a {
-            color: #2d2d2d;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .nav-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .cart-icon {
-            width: 40px;
-            height: 40px;
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: #fff;
-            background: var(--primary);
-        }
-
-        .cart-icon svg {
-            width: 19px;
-            height: 19px;
-        }
-
-        .auth-links {
-            display: flex;
-            gap: 8px;
-        }
-
-        .auth-links a {
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 700;
-            border-radius: 999px;
-            padding: 10px 14px;
-        }
-
-        .auth-links .masuk {
-            color: #1d1d1d;
-            border: 1px solid #d9d9d9;
-            background: #fff;
-        }
-
-        .auth-links .daftar {
-            color: #fff;
-            background: var(--primary);
-            border: 1px solid var(--primary);
-        }
-
-        .breadcrumb {
-            margin: 6px 0 14px;
-            font-size: 12px;
-            color: var(--muted);
-        }
-
-        .breadcrumb a {
-            color: var(--muted);
-            text-decoration: none;
-        }
-
-        .breadcrumb a:hover {
-            color: var(--black);
-        }
-
-        /* --- Cart Layout --- */
-        .cart-layout {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 24px;
-            align-items: start;
-        }
-
-        .cart-box {
-            background: var(--white);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: 0 8px 18px rgba(17, 17, 17, 0.02);
-        }
-
-        .cart-box h2,
-        .cart-summary h3 {
-            font-size: 20px;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--line);
-        }
-
-        /* Cart Items */
-        .cart-items-list {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .cart-item {
-            display: flex;
-            gap: 16px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid var(--line);
-        }
-
-        .cart-item:last-child {
-            padding-bottom: 0;
-            border-bottom: 0;
-        }
-
-        .item-img {
-            width: 110px;
-            height: 130px;
-            border-radius: 10px;
-            background: #f1f1f1;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .item-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .item-fallback {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            color: #888;
-            text-align: center;
-            padding: 10px;
-        }
-
-        .item-details {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .item-name {
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .item-category {
-            font-size: 13px;
-            color: var(--muted);
-            margin-top: 4px;
-        }
-
-        .item-price {
-            font-size: 16px;
-            font-weight: 800;
-            margin-top: 6px;
-        }
-
-        .item-actions {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-top: auto;
-        }
-
-        .qty-controls {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid var(--line);
-            border-radius: 999px;
-            padding: 4px 10px;
-        }
-
-        .qty-btn {
-            text-decoration: none;
-            color: #111;
-            font-size: 18px;
-            line-height: 1;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #f4f4f4;
-            border-radius: 50%;
-        }
-
-        .qty-btn:hover {
-            background: #e0e0e0;
-        }
-
-        .qty-value {
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 20px;
-            text-align: center;
-        }
-
-        .remove-btn {
-            text-decoration: none;
-            color: #d12;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .remove-btn:hover {
-            text-decoration: underline;
-        }
-
-        .empty-cart {
-            text-align: center;
-            padding: 40px 20px;
-            color: var(--muted);
-        }
-
-        .empty-cart a {
-            display: inline-block;
-            margin-top: 14px;
-            text-decoration: none;
-            font-weight: 700;
-            color: #fff;
-            background: var(--primary);
-            padding: 10px 24px;
-            border-radius: 999px;
-        }
+        .cart-items-list { display: flex; flex-direction: column; gap: 20px; }
+        .cart-item { display: flex; gap: 16px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+        .cart-item:last-child { padding-bottom: 0; border-bottom: 0; }
+        .item-img { width: 110px; height: 130px; border-radius: 10px; background: #222; overflow: hidden; flex-shrink: 0; }
+        .item-img img { width: 100%; height: 100%; object-fit: cover; }
+        .item-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #A1A1AA; text-align: center; padding: 10px; }
+        .item-details { flex: 1; display: flex; flex-direction: column; }
+        .item-name { font-size: 16px; font-weight: 700; color: #FFFFFF; }
+        .item-category { font-size: 13px; color: var(--muted); margin-top: 4px; }
+        .item-price { font-size: 16px; font-weight: 800; margin-top: 6px; color: var(--accent); }
+        .item-actions { display: flex; align-items: center; justify-content: space-between; margin-top: auto; }
+        .qty-controls { display: flex; align-items: center; gap: 12px; border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 4px 10px; }
+        .qty-btn { text-decoration: none; color: #FFFFFF; font-size: 18px; line-height: 1; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 50%; transition: background 0.2s; }
+        .qty-btn:hover { background: rgba(255,255,255,0.2); }
+        .qty-value { font-size: 14px; font-weight: 600; min-width: 20px; text-align: center; }
+        .remove-btn { text-decoration: none; color: var(--danger); font-size: 13px; font-weight: 700; }
+        .remove-btn:hover { text-decoration: underline; }
+        .empty-cart { text-align: center; padding: 40px 20px; color: var(--muted); }
+        .empty-cart a { display: inline-block; margin-top: 14px; text-decoration: none; font-weight: 700; color: #111; background: var(--accent); padding: 10px 24px; border-radius: 999px; box-shadow: 0 4px 15px rgba(212,175,55,0.3); transition: all 0.3s; }
+        .empty-cart a:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212,175,55,0.5); }
 
         /* Order Summary */
-        .cart-summary {
-            background: var(--white);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            padding: 24px;
-            position: sticky;
-            top: 20px;
-            box-shadow: 0 8px 18px rgba(17, 17, 17, 0.02);
-        }
+        .cart-summary { background: rgba(20,20,20,0.4); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-top: 1px solid rgba(212,175,55,0.2); border-radius: var(--radius); padding: 24px; position: sticky; top: 80px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        .summary-row { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; }
+        .summary-row span.label { color: var(--muted); }
+        .summary-total { display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 16px; margin-top: 16px; font-size: 18px; font-weight: 800; color: var(--accent); }
+        .checkout-btn { display: block; width: 100%; background: var(--accent); color: #111; text-align: center; text-decoration: none; padding: 14px; border-radius: 999px; font-size: 15px; font-weight: 700; margin-top: 24px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(212,175,55,0.3); }
+        .checkout-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212,175,55,0.5); }
 
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            font-size: 14px;
-        }
+        /* Footer */
+        footer { margin-top: 64px; display: grid; grid-template-columns: 1.4fr repeat(2, 1fr); gap: 20px; font-size: 13px; color: #A1A1AA; padding: 40px; background: rgba(20,20,20,0.4); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px); border: 1px solid var(--glass-border); border-top: 1px solid rgba(212,175,55,0.3); border-radius: 30px; box-shadow: 0 30px 60px rgba(0,0,0,0.6); }
+        footer h5 { margin-bottom: 12px; font-size: 12px; color: var(--accent); letter-spacing: 2px; text-transform: uppercase; font-weight: 800; }
+        footer ul { list-style: none; display: grid; gap: 8px; }
+        footer ul li { color: #E2E8F0; font-weight: 500; transition: color 0.3s; cursor: pointer; }
+        footer ul li:hover { color: var(--accent); }
+        .copyright { margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1); color: #777; font-size: 12px; }
 
-        .summary-row span.label {
-            color: var(--muted);
-        }
+        @media (max-width: 900px) { .cart-layout { grid-template-columns: 1fr; } .cart-summary { position: static; } }
+        @media (max-width: 760px) { .site-wrap { padding: 0 12px 20px; } .navbar { flex-wrap: wrap; padding: 14px; } .menu { width: 100%; justify-content: space-between; font-size: 12px; gap: 8px; } .nav-actions { width: 100%; justify-content: flex-end; } footer { grid-template-columns: 1fr; gap: 14px; } }
 
-        .summary-total {
-            display: flex;
-            justify-content: space-between;
-            border-top: 1px solid var(--line);
-            padding-top: 16px;
-            margin-top: 16px;
-            font-size: 18px;
-            font-weight: 800;
-        }
-
-        .checkout-btn {
-            display: block;
-            width: 100%;
-            background: #8b9d77;
-            color: #fff;
-            text-align: center;
-            text-decoration: none;
-            padding: 14px;
-            border-radius: 999px;
-            font-size: 15px;
-            font-weight: 700;
-            margin-top: 24px;
-            transition: opacity 0.2s;
-        }
-
-        .checkout-btn:hover {
-            opacity: 0.9;
-        }
-
-        /* --- Footer Styles dari catalog.php --- */
-        footer {
-            margin-top: 64px;
-            display: grid;
-            grid-template-columns: 1.4fr repeat(2, 1fr);
-            gap: 20px;
-            font-size: 13px;
-            color: #4f4f4f;
-        }
-
-        footer h5 {
-            margin-bottom: 12px;
-            font-size: 12px;
-            color: #0f0f0f;
-            letter-spacing: 0.7px;
-            text-transform: uppercase;
-        }
-
-        footer ul {
-            list-style: none;
-            display: grid;
-            gap: 8px;
-        }
-
-        .copyright {
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--line);
-            color: #777;
-            font-size: 12px;
-        }
-
-        @media (max-width: 900px) {
-            .cart-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .cart-summary {
-                position: static;
-            }
-        }
-
-        @media (max-width: 760px) {
-            .site-wrap {
-                padding: 0 12px 20px;
-            }
-
-            .navbar {
-                flex-wrap: wrap;
-                padding: 14px;
-            }
-
-            .menu {
-                width: 100%;
-                justify-content: space-between;
-                font-size: 12px;
-                gap: 8px;
-            }
-
-            .nav-actions {
-                width: 100%;
-                justify-content: flex-end;
-            }
-
-            footer {
-                grid-template-columns: 1fr;
-                gap: 14px;
-            }
-        }
-
-        /* Tabs Styles */
-        .tabs-nav {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 24px;
-            background: rgba(255, 255, 255, 0.5);
-            padding: 6px;
-            border-radius: 14px;
-            border: 1px solid var(--line);
-            width: fit-content;
-        }
-
-        .tab-btn {
-            background: transparent;
-            border: none;
-            padding: 10px 24px;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--muted);
-            cursor: pointer;
-            border-radius: 10px;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tab-btn:hover {
-            color: var(--black);
-            background: rgba(0, 0, 0, 0.03);
-        }
-
-        .tab-btn.active {
-            color: #fff;
-            background: var(--primary);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .tab-pane {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .tab-pane.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .cart-layout.orders-active {
-            grid-template-columns: 1fr;
-        }
-
-        .cart-layout.orders-active .cart-summary {
-            display: none;
-        }
+        /* Tabs */
+        .tabs-nav { display: flex; gap: 8px; margin-bottom: 24px; background: rgba(255,255,255,0.05); padding: 6px; border-radius: 14px; border: 1px solid var(--glass-border); width: fit-content; }
+        .tab-btn { background: transparent; border: none; padding: 10px 24px; font-size: 14px; font-weight: 700; color: var(--muted); cursor: pointer; border-radius: 10px; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); font-family: "Montserrat", sans-serif; }
+        .tab-btn:hover { color: #FFFFFF; background: rgba(255,255,255,0.08); }
+        .tab-btn.active { color: #111; background: var(--accent); box-shadow: 0 4px 12px rgba(212,175,55,0.3); }
+        .tab-pane { display: none; animation: fadeIn 0.3s ease; }
+        .tab-pane.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .cart-layout.orders-active { grid-template-columns: 1fr; }
+        .cart-layout.orders-active .cart-summary { display: none; }
     </style>
 </head>
 
@@ -756,38 +376,38 @@ function e($text): string
                     <?php else: ?>
                         <div class="orders-list" style="display: flex; flex-direction: column; gap: 16px;">
                             <?php foreach ($userOrders as $order): ?>
-                                <div class="order-card" style="background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 16px;">
+                                <div class="order-card" style="background: rgba(255,255,255,0.03); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: var(--radius); padding: 16px;">
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 12px;">
-                                        <span style="font-size: 14px; font-weight: 700;">Order #<?= $order['id'] ?></span>
+                                        <span style="font-size: 14px; font-weight: 700; color: #FFFFFF;">Order #<?= $order['id'] ?></span>
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <?php
                                             $statusLabel = '';
-                                            $statusBg = '#f0f0f0';
-                                            $statusColor = '#111';
+                                            $statusBg = 'rgba(255,255,255,0.1)';
+                                            $statusColor = '#FFFFFF';
 
                                             if ($order['status'] === 'pending') {
                                                 $statusLabel = 'Menunggu Pembayaran';
-                                                $statusBg = '#fff3e0';
-                                                $statusColor = '#e65100';
+                                                $statusBg = 'rgba(245,158,11,0.2)';
+                                                $statusColor = '#fbbf24';
                                             } elseif ($order['status'] === 'cancel') {
                                                 $statusLabel = 'Dibatalkan';
-                                                $statusBg = '#ffebee';
-                                                $statusColor = '#d32f2f';
+                                                $statusBg = 'rgba(239,68,68,0.2)';
+                                                $statusColor = '#f87171';
                                             } elseif ($order['status'] === 'completed') {
                                                 $statusLabel = 'Pembayaran Selesai';
-                                                $statusBg = '#e8f5e9';
-                                                $statusColor = '#2e7d32';
+                                                $statusBg = 'rgba(16,185,129,0.2)';
+                                                $statusColor = '#34d399';
                                             } else {
                                                 $statusLabel = ucfirst($order['status']);
                                             }
                                             ?>
-                                            <span style="font-size: 11px; padding: 4px 10px; background: <?= $statusBg ?>; color: <?= $statusColor ?>; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <span style="font-size: 11px; padding: 4px 10px; background: <?= $statusBg ?>; color: <?= $statusColor ?>; border: 1px solid <?= $statusBg ?>; border-radius: 999px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
                                                 <?= e($statusLabel) ?>
                                             </span>
                                             <?php if ($order['status'] === 'pending'): ?>
                                                 <a href="cart.php?action=cancel_order&order_id=<?= $order['id'] ?>"
                                                     onclick="return confirm('Apakah Anda yakin ingin membatalkan pesanan ini?');"
-                                                    style="text-decoration: none; font-size: 12px; padding: 4px 10px; background: #ffebee; color: #d32f2f; border-radius: 999px; font-weight: 600;">Batalkan</a>
+                                                    style="text-decoration: none; font-size: 12px; padding: 4px 10px; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); border-radius: 999px; font-weight: 600;">Batalkan</a>
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -795,15 +415,15 @@ function e($text): string
                                     <div class="order-items-preview" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px;">
                                         <?php foreach ($order['items'] as $oi): ?>
                                             <div style="display: flex; gap: 12px; align-items: center;">
-                                                <div style="width: 50px; height: 60px; border-radius: 6px; background: #f1f1f1; overflow: hidden; flex-shrink: 0;">
+                                                <div style="width: 50px; height: 60px; border-radius: 6px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); overflow: hidden; flex-shrink: 0;">
                                                     <?php if (!empty($oi['image'])): ?>
                                                         <img src="<?= e($oi['image']) ?>" alt="<?= e($oi['name']) ?>" style="width: 100%; height: 100%; object-fit: cover;">
                                                     <?php else: ?>
-                                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: #888;">Tanpa Gambar</div>
+                                                        <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--muted);">Tanpa Gambar</div>
                                                     <?php endif; ?>
                                                 </div>
                                                 <div style="flex: 1;">
-                                                    <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 4px;"><?= e($oi['name']) ?></h4>
+                                                    <h4 style="font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #FFFFFF;"><?= e($oi['name']) ?></h4>
                                                     <p style="font-size: 12px; color: var(--muted);"><?= e($oi['quantity']) ?> x <?= rupiah($oi['price']) ?></p>
                                                 </div>
                                             </div>
@@ -816,19 +436,19 @@ function e($text): string
                                     </div>
                                     
                                     <?php if (!empty($order['payment_method'])): ?>
-                                        <div style="margin-top: 12px; padding: 12px; background: #fafafa; border: 1px solid var(--line); border-radius: 8px; font-size: 13px;">
+                                        <div style="margin-top: 12px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; font-size: 13px;">
                                             <?php if (!empty($order['address'])): ?>
-                                                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line);">
+                                                <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                                     <span style="color: var(--muted); display: block; margin-bottom: 4px;">Alamat Pengiriman</span>
-                                                    <p style="font-weight: 500; color: var(--black); line-height: 1.4;"><?= nl2br(e($order['address'])) ?></p>
+                                                    <p style="font-weight: 500; color: #FFFFFF; line-height: 1.4;"><?= nl2br(e($order['address'])) ?></p>
                                                 </div>
                                             <?php endif; ?>
-                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid var(--line);">
+                                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1);">
                                                 <span style="color: var(--muted);">Opsi Pengiriman</span>
                                                 <div style="display: flex; align-items: center; gap: 8px;">
                                                     <?php if (!empty($order['shipment'])): ?>
-                                                        <span style="font-size: 12px; font-weight: 600; color: var(--black);"><?= e($order['shipment']['service_name']) ?></span>
-                                                        <span style="font-weight: 700; color: var(--black);"><?= rupiah($order['shipment']['shipment_price']) ?></span>
+                                                        <span style="font-size: 12px; font-weight: 600; color: #FFFFFF;"><?= e($order['shipment']['service_name']) ?></span>
+                                                        <span style="font-weight: 700; color: var(--accent);"><?= rupiah($order['shipment']['shipment_price']) ?></span>
                                                     <?php else: ?>
                                                         <span style="font-size: 12px; color: var(--muted);">-</span>
                                                     <?php endif; ?>
@@ -847,7 +467,7 @@ function e($text): string
                                                 <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
                                                     <span style="color: var(--muted);"><?= $order['payment_method'] === 'gopay' ? 'Link QR Code' : 'Virtual Account' ?></span>
                                                     <div style="display: flex; align-items: center; gap: 8px; max-width: 100%;">
-                                                        <span style="font-weight: 700; color: var(--black); letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;" title="<?= e($order['payment_address']) ?>">
+                                                        <span style="font-weight: 700; color: #FFFFFF; letter-spacing: 0.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 200px;" title="<?= e($order['payment_address']) ?>">
                                                             <?= e($order['payment_address']) ?>
                                                         </span>
                                                         <button type="button"
@@ -860,8 +480,8 @@ function e($text): string
                                     <?php endif; ?>
 
                                     <?php if ($order['status'] === 'completed'): ?>
-                                        <div class="shipment-progress" style="margin-top: 16px; padding: 16px; background: #f8faf8; border: 1px solid #d4edda; border-radius: 10px;">
-                                            <p style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #2e7d32; margin-bottom: 14px;">Progres Pengiriman</p>
+                                        <div class="shipment-progress" style="margin-top: 16px; padding: 16px; background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px;">
+                                            <p style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #34d399; margin-bottom: 14px;">Progres Pengiriman</p>
                                             <div style="display: flex; align-items: center; gap: 0; position: relative;">
                                                 <?php
                                                 $steps = [
@@ -873,9 +493,9 @@ function e($text): string
                                                 foreach ($steps as $i => $step):
                                                     $isDone = $step['done'];
                                                     $isActive = $step['active'] ?? false;
-                                                    $dotBg = $isDone ? '#2e7d32' : ($isActive ? '#ff9800' : '#d0d0d0');
-                                                    $dotBorder = $isDone ? '#2e7d32' : ($isActive ? '#ff9800' : '#d0d0d0');
-                                                    $labelColor = $isDone ? '#2e7d32' : ($isActive ? '#e65100' : '#aaa');
+                                                    $dotBg = $isDone ? '#10b981' : ($isActive ? '#fbbf24' : 'rgba(255,255,255,0.2)');
+                                                    $dotBorder = $isDone ? '#10b981' : ($isActive ? '#fbbf24' : 'rgba(255,255,255,0.1)');
+                                                    $labelColor = $isDone ? '#34d399' : ($isActive ? '#fbbf24' : 'var(--muted)');
                                                     $labelWeight = ($isDone || $isActive) ? '700' : '500';
                                                 ?>
                                                     <div style="flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1;">
@@ -883,7 +503,7 @@ function e($text): string
                                                         <span style="font-size: 10px; margin-top: 8px; color: <?= $labelColor ?>; font-weight: <?= $labelWeight ?>; text-align: center; line-height: 1.3;"><?= $step['label'] ?></span>
                                                     </div>
                                                     <?php if ($i < count($steps) - 1): ?>
-                                                        <div style="flex: 1; height: 2px; background: <?= $isDone ? '#2e7d32' : '#e0e0e0' ?>; margin-top: -18px; position: relative; z-index: 0;"></div>
+                                                        <div style="flex: 1; height: 2px; background: <?= $isDone ? '#10b981' : 'rgba(255,255,255,0.1)' ?>; margin-top: -18px; position: relative; z-index: 0;"></div>
                                                     <?php endif; ?>
                                                 <?php endforeach; ?>
                                             </div>

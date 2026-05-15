@@ -88,16 +88,21 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
             font-style: normal;
         }
         :root {
-            --primary: #6a7f52;
-            --primary-hover: #526340;
-            --bg: #f3eddf;
-            --text: #2e3522;
-            --muted: #6b735c;
-            --line: #cbd5bb;
-            --white: #bac6a9;
-            --black: #36442c;
-            --success: #1ea672;
-            --danger: #d24e4e;
+            --primary: #2d5a40;
+            --primary-hover: #1b4332;
+            --primary-glow: rgba(45, 90, 64, 0.5);
+            --accent: #D4AF37;
+            --accent-glow: rgba(212, 175, 55, 0.4);
+            --bg: #070707;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #FFFFFF;
+            --muted: #A1A1AA;
+            --line: rgba(255, 255, 255, 0.1);
+            --white: rgba(20, 20, 20, 0.4);
+            --black: #FFFFFF;
+            --success: #10b981;
+            --danger: #ef4444;
             --radius: 18px;
         }
 
@@ -112,12 +117,30 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
             color: var(--text);
             font-family: "Montserrat", sans-serif;
             line-height: 1.4;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
+        body::before {
+            content: ''; position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(80px);
+            animation: floatGlow1 20s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: ''; position: fixed; bottom: -10%; right: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(100px);
+            animation: floatGlow2 25s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes floatGlow1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(100px, 100px) scale(1.2); } }
+        @keyframes floatGlow2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-100px, -100px) scale(1.3); } }
 
 		.site-wrap {
 			max-width: 1240px;
 			margin: 0 auto;
 			padding: 0 20px 28px;
+			position: relative;
+			z-index: 1;
 		}
 
 		.navbar {
@@ -125,20 +148,28 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			align-items: center;
 			justify-content: space-between;
 			gap: 12px;
-			background: var(--bg);
-			border-bottom: 1px solid var(--line);
+			background: rgba(10, 10, 10, 0.6);
+			backdrop-filter: blur(24px);
+			-webkit-backdrop-filter: blur(24px);
+			border: 1px solid var(--glass-border);
+			border-top: none;
 			padding: 16px 22px;
-			border-radius: 0 0 14px 14px;
+			border-radius: 0 0 24px 24px;
+			box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+			position: sticky;
+			top: 0;
+			z-index: 100;
 			margin-bottom: 18px;
 		}
 
 		.brand {
-            font-family: "Symphony";
+            font-family: "Symphony", sans-serif;
             font-size: 30px;
             text-decoration: none;
-            color: var(--black);
+            color: var(--accent);
             letter-spacing: 1px;
             margin-top: 5px;
+            text-shadow: 0 2px 10px rgba(212,175,55,0.2);
         }
 
 		.menu {
@@ -149,10 +180,22 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 		}
 
 		.menu a {
-			color: #2d2d2d;
+			color: #FFFFFF;
 			text-decoration: none;
-			font-weight: 600;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 1px;
+			font-size: 13px;
+			transition: color 0.3s;
+			position: relative;
+			padding: 5px 0;
 		}
+		.menu a::after {
+			content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 2px;
+			background: linear-gradient(90deg, var(--accent), #fef08a); transition: width 0.3s ease-in-out;
+		}
+		.menu a:hover { color: var(--accent); }
+		.menu a:hover::after { width: 100%; }
 
 		.search {
 			flex: 1;
@@ -161,12 +204,17 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 
 		.search input {
 			width: 100%;
-			border: 1px solid var(--line);
+			border: 1px solid rgba(255,255,255,0.2);
 			border-radius: 999px;
 			padding: 10px 16px;
-			background: #f8f8f8;
+			background: rgba(255,255,255,0.1);
+			color: #FFFFFF;
 			font-size: 13px;
+			font-family: "Montserrat", sans-serif;
+			transition: all 0.3s ease;
 		}
+		.search input::placeholder { color: rgba(255,255,255,0.7); }
+		.search input:focus { background: rgba(255,255,255,0.15); box-shadow: 0 0 0 4px rgba(212,175,55,0.2); outline: none; border-color: var(--accent); }
 
 		.nav-actions {
 			display: flex;
@@ -183,9 +231,11 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			align-items: center;
 			justify-content: center;
 			text-decoration: none;
-			color: #fff;
-			background: var(--primary);
+			color: var(--text);
+			background: rgba(255,255,255,0.05);
+			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 		}
+		.cart-icon:hover { transform: translateY(-2px); border-color: var(--accent); color: var(--accent); }
 
 		.cart-icon svg {
 			width: 19px;
@@ -206,16 +256,19 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 		}
 
 		.auth-links .masuk {
-			color: #1d1d1d;
-			border: 1px solid #d9d9d9;
-			background: #fff;
+			color: var(--accent);
+			border: 1px solid var(--accent);
+			background: transparent;
 		}
+		.auth-links .masuk:hover { background: var(--accent); color: #111; transform: translateY(-2px); }
 
 		.auth-links .daftar {
-			color: #fff;
-			background: var(--primary);
-			border: 1px solid var(--primary);
+			color: #111;
+			background: linear-gradient(135deg, var(--accent) 0%, #fef08a 50%, var(--accent) 100%);
+			background-size: 200% auto;
+			border: none;
 		}
+		.auth-links .daftar:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212,175,55,0.6); }
 
 		.breadcrumb {
 			margin: 6px 0 14px;
@@ -231,10 +284,14 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 
 		.gallery,
 		.summary {
-			background: var(--white);
-			border: 1px solid var(--line);
+			background: rgba(20,20,20,0.4);
+			backdrop-filter: blur(20px);
+			-webkit-backdrop-filter: blur(20px);
+			border: 1px solid var(--glass-border);
+			border-top: 1px solid rgba(212,175,55,0.2);
 			border-radius: var(--radius);
 			padding: 14px;
+			box-shadow: 0 15px 35px rgba(0,0,0,0.5);
 		}
 
 		.hero-wrapper {
@@ -245,7 +302,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			overflow: hidden;
 			border: 1px solid var(--line);
 			box-shadow: 0 12px 24px rgba(17,17,17,.06);
-			background: #ececec;
+			background: #222;
 			cursor: pointer;
 		}
 
@@ -386,11 +443,11 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 
 		.chip {
 			border-radius: 999px;
-			border: 1px solid var(--line);
-			background: #fafafa;
+			border: 1px solid rgba(255,255,255,0.2);
+			background: rgba(255,255,255,0.1);
 			padding: 6px 10px;
 			font-size: 12px;
-			color: #3f3f3f;
+			color: #E2E8F0;
 			font-weight: 600;
 		}
 
@@ -404,6 +461,7 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			font-size: clamp(24px, 2.8vw, 34px);
 			font-weight: 800;
 			margin-bottom: 12px;
+			color: var(--accent);
 		}
 
 		.price-row {
@@ -416,21 +474,22 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 
 		.old-price {
 			font-size: 17px;
-			color: #8d8d8d;
+			color: rgba(255,255,255,0.4);
 			text-decoration: line-through;
 		}
 
 		.discount {
 			padding: 8px 14px;
 			border-radius: 999px;
-			background: #f3e8e8;
-			color: #bc4b41;
+			background: linear-gradient(135deg, var(--accent), #fef08a);
+			color: #111;
 			font-size: 18px;
 			font-weight: 800;
+			box-shadow: 0 4px 10px rgba(212,175,55,0.3);
 		}
 
 		.description {
-			color: #3b3b3b;
+			color: #E2E8F0;
 			font-size: 14px;
 			margin-bottom: 14px;
 			white-space: pre-line;
@@ -444,9 +503,9 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 		}
 
 		.spec-item {
-			border: 1px solid var(--line);
+			border: 1px solid rgba(255,255,255,0.15);
 			border-radius: 10px;
-			background: #fafafa;
+			background: rgba(255,255,255,0.05);
 			padding: 10px;
 		}
 
@@ -454,14 +513,14 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			font-size: 11px;
 			text-transform: uppercase;
 			letter-spacing: 0.6px;
-			color: #777;
+			color: var(--muted);
 			margin-bottom: 4px;
 		}
 
 		.spec-item p {
 			font-size: 14px;
 			font-weight: 700;
-			color: #1d1d1d;
+			color: #FFFFFF;
 		}
 
 		.actions {
@@ -483,14 +542,21 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 		}
 
 		.btn.primary {
-			background: var(--primary);
-			color: #fff;
+			background: var(--accent);
+			color: #111;
+			border-color: var(--accent);
+			box-shadow: 0 4px 15px rgba(212,175,55,0.3);
+			transition: all 0.3s;
 		}
+		.btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212,175,55,0.5); }
 
 		.btn.secondary {
-			background: #fff;
-			color: #111;
+			background: transparent;
+			color: var(--muted);
+			border-color: rgba(255,255,255,0.2);
+			transition: all 0.3s;
 		}
+		.btn.secondary:hover { color: #fff; border-color: rgba(255,255,255,0.4); }
 
 		footer {
 			margin-top: 64px;
@@ -498,15 +564,24 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			grid-template-columns: 1.4fr repeat(2, 1fr);
 			gap: 20px;
 			font-size: 13px;
-			color: #4f4f4f;
+			color: #A1A1AA;
+			padding: 40px;
+			background: rgba(20,20,20,0.4);
+			backdrop-filter: blur(30px);
+			-webkit-backdrop-filter: blur(30px);
+			border: 1px solid var(--glass-border);
+			border-top: 1px solid rgba(212,175,55,0.3);
+			border-radius: 30px;
+			box-shadow: 0 30px 60px rgba(0,0,0,0.6);
 		}
 
 		footer h5 {
 			margin-bottom: 12px;
 			font-size: 12px;
-			color: #0f0f0f;
-			letter-spacing: 0.7px;
+			color: var(--accent);
+			letter-spacing: 2px;
 			text-transform: uppercase;
+			font-weight: 800;
 		}
 
 		footer ul {
@@ -514,11 +589,13 @@ $categoryText = ucwords((string) ($product['category_name'] ?? '-'));
 			display: grid;
 			gap: 8px;
 		}
+		footer ul li { color: #E2E8F0; font-weight: 500; transition: color 0.3s; cursor: pointer; }
+		footer ul li:hover { color: var(--accent); }
 
 		.copyright {
 			margin-top: 20px;
 			padding-top: 16px;
-			border-top: 1px solid var(--line);
+			border-top: 1px solid rgba(255,255,255,0.1);
 			color: #777;
 			font-size: 12px;
 		}
