@@ -1,22 +1,18 @@
 <?php
-$conn = new mysqli("localhost", "root", "123", "recloth");
+require_once __DIR__ . '/../config/database.php';
 
-if ($conn->connect_error) {
-  die("Koneksi gagal: " . $conn->connect_error);
-}
-
-$result = $conn->query("SELECT id, name, email, role, created_at FROM users WHERE role = 'user'");
+$result = $pdo->query("SELECT id, name, email, role, created_at FROM users WHERE role = 'user'");
 $customers = [];
 
-while ($row = $result->fetch_assoc()) {
+while ($row = $result->fetch(PDO::FETCH_ASSOC)) {
   $row['addresses'] = [];
   $customers[$row['id']] = $row;
 }
 
 if (!empty($customers)) {
   $userIds = implode(',', array_keys($customers));
-  $addrResult = $conn->query("SELECT id, user_id, label, address, zip_code, is_default FROM user_addresses WHERE user_id IN ($userIds) ORDER BY is_default DESC, created_at ASC");
-  while ($addr = $addrResult->fetch_assoc()) {
+  $addrResult = $pdo->query("SELECT id, user_id, label, address, zip_code, is_default FROM user_addresses WHERE user_id IN ($userIds) ORDER BY is_default DESC, created_at ASC");
+  while ($addr = $addrResult->fetch(PDO::FETCH_ASSOC)) {
     if (isset($customers[$addr['user_id']])) {
       $customers[$addr['user_id']]['addresses'][] = $addr;
     }
