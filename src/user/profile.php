@@ -56,51 +56,73 @@ $title = "Profil Saya - Recloth";
             font-style: normal;
         }
         :root {
-            --primary: #6a7f52;
-            --primary-hover: #526340;
-            --bg: #f3eddf;
-            --text: #2e3522;
-            --muted: #6b735c;
-            --line: #cbd5bb;
-            --white: #bac6a9;
-            --black: #36442c;
-            --success: #1ea672;
-            --danger: #d24e4e;
+            --primary: #2d5a40;
+            --primary-hover: #1b4332;
+            --primary-glow: rgba(45, 90, 64, 0.5);
+            --accent: #D4AF37;
+            --accent-glow: rgba(212, 175, 55, 0.4);
+            --bg: #070707;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #FFFFFF;
+            --muted: #A1A1AA;
+            --line: rgba(255, 255, 255, 0.1);
+            --white: rgba(20, 20, 20, 0.4);
+            --black: #FFFFFF;
+            --success: #10b981;
+            --danger: #ef4444;
             --radius: 18px;
         }
 
         body {
             background-color: var(--bg);
-            color: var(--black);
+            color: var(--text);
             font-family: "Montserrat", sans-serif;
             -webkit-font-smoothing: antialiased;
         }
+        
+        body::before {
+            content: ''; position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(80px);
+            animation: floatGlow1 20s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: ''; position: fixed; bottom: -10%; right: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(100px);
+            animation: floatGlow2 25s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes floatGlow1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(100px, 100px) scale(1.2); } }
+        @keyframes floatGlow2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-100px, -100px) scale(1.3); } }
 
         .brand-font {
             font-family: "Symphony";
         }
 
         .navbar {
-            background: var(--bg);
-            border-bottom: 1px solid var(--line);
+            background: rgba(7, 7, 7, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
         }
 
         .cart-icon {
             width: 40px;
             height: 40px;
-            border: 1px solid var(--line);
+            border: 1px solid var(--glass-border);
             border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             text-decoration: none;
-            color: #fff;
-            background: var(--primary);
+            color: var(--text);
+            background: rgba(255,255,255,0.05);
             transition: all 0.2s;
         }
 
         .cart-icon:hover {
-            background: #f4f4f5;
+            background: rgba(212,175,55,0.1);
+            border-color: var(--accent);
             transform: translateY(-1px);
         }
 
@@ -111,34 +133,36 @@ $title = "Profil Saya - Recloth";
 
         .form-input {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background-color: #FAFAFA;
+            background-color: rgba(255,255,255,0.05);
+            color: #FFFFFF;
+            border-color: rgba(255,255,255,0.1);
         }
 
         .form-input:focus {
-            border-color: var(--black);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            background-color: var(--white);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(212,175,55,0.15);
+            background-color: rgba(255,255,255,0.1);
             transform: translateY(-1px);
         }
 
         .btn-update {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: var(--primary);
-            position: relative;
-            overflow: hidden;
+            background: linear-gradient(to right, var(--accent), #fef08a);
+            color: #111;
+            border: none;
         }
 
         .btn-update:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(24, 24, 27, 0.2);
-            background: var(--primary-hover);
+            box-shadow: 0 8px 25px rgba(212,175,55,0.5);
         }
 
         .profile-card {
             background: var(--white);
-            border: 1px solid var(--line);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.03);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -147,7 +171,7 @@ $title = "Profil Saya - Recloth";
     <!-- Navbar -->
     <nav class="navbar sticky top-0 z-50 px-6 py-4">
         <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <a href="../../index.php" class="brand-font text-3xl text-black">Recloth</a>
+            <a href="../../index.php" class="brand-font text-3xl text-white">Recloth</a>
             
             <div class="flex items-center gap-4">
                 <a href="cart.php?tab=cart" class="cart-icon" aria-label="Keranjang">
@@ -157,7 +181,7 @@ $title = "Profil Saya - Recloth";
                         <circle cx="17.5" cy="19" r="1.2" fill="currentColor"/>
                     </svg>
                 </a>
-                <a href="../config/logout.php" class="cart-icon" aria-label="Logout" style="color: #d24e4e; background: var(--bg); border-color: var(--line);">
+                <a href="../config/logout.php" class="cart-icon" aria-label="Logout" style="color: #ef4444;">
                     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <path stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                     </svg>
@@ -166,21 +190,21 @@ $title = "Profil Saya - Recloth";
         </div>
     </nav>
 
-    <main class="max-w-4xl mx-auto px-6 py-12">
+    <main class="max-w-4xl mx-auto px-6 py-12 relative z-10">
         <div class="mb-10">
-            <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors mb-6 group">
+            <a href="javascript:history.back()" class="inline-flex items-center gap-2 text-sm font-medium text-[var(--muted)] hover:text-[var(--accent)] transition-colors mb-6 group">
                 <svg class="h-4 w-4 transform group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
                 Kembali
             </a>
-            <h1 class="text-4xl font-bold tracking-tight text-gray-900 mb-2">Profil Saya</h1>
-            <p class="text-gray-500 font-medium">Kelola informasi akun dan alamat pengiriman Anda.</p>
+            <h1 class="text-4xl font-bold tracking-tight text-white mb-2">Profil Saya</h1>
+            <p class="text-[var(--muted)] font-medium">Kelola informasi akun dan alamat pengiriman Anda.</p>
         </div>
 
         <?php if (isset($_GET['success'])): ?>
-            <div class="mb-8 rounded-2xl bg-green-50 border border-green-200 px-6 py-4 text-sm font-medium text-green-700 flex items-center gap-3">
-                <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="mb-8 rounded-2xl bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)] px-6 py-4 text-sm font-medium text-emerald-400 flex items-center gap-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span>Profil berhasil diperbarui!</span>
@@ -188,8 +212,8 @@ $title = "Profil Saya - Recloth";
         <?php endif; ?>
 
         <?php if (isset($_GET['error'])): ?>
-            <div class="mb-8 rounded-2xl bg-red-50 border border-red-200 px-6 py-4 text-sm font-medium text-red-700 flex items-center gap-3">
-                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="mb-8 rounded-2xl bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.2)] px-6 py-4 text-sm font-medium text-red-400 flex items-center gap-3">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span><?= htmlspecialchars($_GET['error']) ?></span>
@@ -200,16 +224,16 @@ $title = "Profil Saya - Recloth";
             <!-- Sidebar Info -->
             <div class="md:col-span-1">
                 <div class="profile-card p-8 flex flex-col items-center text-center">
-                    <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-6 border-4 border-white shadow-sm">
-                        <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="w-24 h-24 rounded-full bg-[rgba(255,255,255,0.05)] border border-[rgba(255,255,255,0.1)] flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-12 h-12 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900"><?= htmlspecialchars($user['name']) ?></h3>
-                    <p class="text-sm text-gray-500 mb-6"><?= htmlspecialchars($user['email']) ?></p>
+                    <h3 class="text-xl font-bold text-white"><?= htmlspecialchars($user['name']) ?></h3>
+                    <p class="text-sm text-[var(--muted)] mb-6"><?= htmlspecialchars($user['email']) ?></p>
                     
-                    <div class="w-full pt-6 border-t border-gray-100 space-y-4">
-                        <a href="cart.php?tab=orders" class="flex items-center justify-between text-sm font-semibold text-gray-700 hover:text-black transition-colors group">
+                    <div class="w-full pt-6 border-t border-[rgba(255,255,255,0.1)] space-y-4">
+                        <a href="cart.php?tab=orders" class="flex items-center justify-between text-sm font-semibold text-gray-300 hover:text-[var(--accent)] transition-colors group">
                             <span>Pesanan Saya</span>
                             <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -223,8 +247,8 @@ $title = "Profil Saya - Recloth";
             <div class="md:col-span-2 space-y-8">
                 <!-- Info Personal -->
                 <div class="profile-card p-8 sm:p-10">
-                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
-                        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                         </svg>
                         Informasi Pribadi
@@ -232,24 +256,24 @@ $title = "Profil Saya - Recloth";
                     <form action="../config/update_profile.php" method="POST" class="space-y-6">
                         <div class="grid grid-cols-1 gap-6">
                             <div class="space-y-1.5">
-                                <label for="name" class="block text-sm font-semibold text-gray-700">Nama Lengkap</label>
+                                <label for="name" class="block text-sm font-semibold text-gray-300">Nama Lengkap</label>
                                 <input
                                     type="text"
                                     id="name"
                                     name="name"
                                     value="<?= htmlspecialchars($user['name']) ?>"
-                                    class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-gray-900 outline-none"
+                                    class="form-input w-full rounded-xl border border-[rgba(255,255,255,0.1)] px-4 py-3.5 text-sm text-white outline-none"
                                     required
                                 >
                             </div>
 
                             <div class="space-y-1.5 opacity-60">
-                                <label for="email" class="block text-sm font-semibold text-gray-700">Email</label>
+                                <label for="email" class="block text-sm font-semibold text-gray-300">Email</label>
                                 <input
                                     type="email"
                                     id="email"
                                     value="<?= htmlspecialchars($user['email']) ?>"
-                                    class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-gray-900 bg-gray-100 cursor-not-allowed"
+                                    class="w-full rounded-xl border border-[rgba(255,255,255,0.1)] px-4 py-3.5 text-sm text-gray-400 bg-[rgba(255,255,255,0.02)] cursor-not-allowed"
                                     disabled
                                 >
                                 <p class="text-xs text-gray-500 mt-1">Email tidak dapat diubah.</p>
@@ -257,7 +281,7 @@ $title = "Profil Saya - Recloth";
                         </div>
 
                         <div class="pt-4">
-                            <button type="submit" class="btn-update w-full rounded-xl py-4 text-sm font-bold text-white shadow-lg flex justify-center items-center gap-2 group">
+                            <button type="submit" class="btn-update w-full rounded-xl py-4 text-sm font-bold shadow-[0_4px_15px_rgba(212,175,55,0.3)] flex justify-center items-center gap-2 group">
                                 <span>Simpan Nama</span>
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -270,36 +294,36 @@ $title = "Profil Saya - Recloth";
                 <!-- Daftar Alamat -->
                 <div class="profile-card p-8 sm:p-10">
                     <div class="flex items-center justify-between mb-6">
-                        <h2 class="text-xl font-bold flex items-center gap-2">
-                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <h2 class="text-xl font-bold text-white flex items-center gap-2">
+                            <svg class="w-5 h-5 text-[var(--muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                             </svg>
                             Alamat Pengiriman
                         </h2>
-                        <button onclick="document.getElementById('addressModal').classList.remove('hidden')" class="text-sm font-bold text-black hover:underline flex items-center gap-1">
+                        <button onclick="document.getElementById('addressModal').classList.remove('hidden')" class="text-sm font-bold text-[var(--accent)] hover:underline flex items-center gap-1">
                             <span>+ Tambah Alamat</span>
                         </button>
                     </div>
 
                     <div class="space-y-4">
                         <?php if (empty($addresses)): ?>
-                            <div class="text-center py-8 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                <p class="text-gray-500 text-sm">Belum ada alamat yang tersimpan.</p>
+                            <div class="text-center py-8 bg-[rgba(255,255,255,0.02)] rounded-2xl border border-dashed border-[rgba(255,255,255,0.1)]">
+                                <p class="text-[var(--muted)] text-sm">Belum ada alamat yang tersimpan.</p>
                             </div>
                         <?php else: ?>
                             <?php foreach ($addresses as $addr): ?>
-                                <div class="p-5 rounded-2xl border <?= $addr['is_default'] ? 'border-black bg-gray-50' : 'border-gray-100' ?> flex justify-between items-start gap-4">
+                                <div class="p-5 rounded-2xl border <?= $addr['is_default'] ? 'border-[var(--accent)] bg-[rgba(212,175,55,0.05)]' : 'border-[rgba(255,255,255,0.1)]' ?> flex justify-between items-start gap-4">
                                     <div class="space-y-1">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-xs font-bold uppercase tracking-wider text-gray-900"><?= htmlspecialchars($addr['label']) ?></span>
+                                            <span class="text-xs font-bold uppercase tracking-wider text-white"><?= htmlspecialchars($addr['label']) ?></span>
                                             <?php if ($addr['is_default']): ?>
-                                                <span class="bg-[var(--primary)] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">UTAMA</span>
+                                                <span class="bg-[var(--accent)] text-[#111] text-[10px] px-2 py-0.5 rounded-full font-bold">UTAMA</span>
                                             <?php endif; ?>
                                         </div>
-                                        <p class="text-sm text-gray-600 leading-relaxed"><?= nl2br(htmlspecialchars($addr['address'])) ?></p>
+                                        <p class="text-sm text-[var(--muted)] leading-relaxed"><?= nl2br(htmlspecialchars($addr['address'])) ?></p>
                                         <?php if (!empty($addr['zip_code'])): ?>
-                                            <p class="text-xs text-gray-400 mt-1 font-medium">Kode Pos: <?= htmlspecialchars($addr['zip_code']) ?></p>
+                                            <p class="text-xs text-gray-500 mt-1 font-medium">Kode Pos: <?= htmlspecialchars($addr['zip_code']) ?></p>
                                         <?php endif; ?>
                                     </div>
                                     <div class="flex gap-2">
@@ -307,13 +331,13 @@ $title = "Profil Saya - Recloth";
                                             <form action="../config/address_actions.php" method="POST" class="inline">
                                                 <input type="hidden" name="action" value="set_default">
                                                 <input type="hidden" name="address_id" value="<?= $addr['id'] ?>">
-                                                <button type="submit" class="text-xs font-bold text-gray-400 hover:text-black transition-colors">Utamakan</button>
+                                                <button type="submit" class="text-xs font-bold text-gray-500 hover:text-[var(--accent)] transition-colors">Utamakan</button>
                                             </form>
                                         <?php endif; ?>
                                         <form action="../config/address_actions.php" method="POST" class="inline" onsubmit="return confirm('Hapus alamat ini?')">
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="address_id" value="<?= $addr['id'] ?>">
-                                            <button type="submit" class="text-xs font-bold text-red-400 hover:text-red-600 transition-colors">Hapus</button>
+                                            <button type="submit" class="text-xs font-bold text-red-400 hover:text-red-500 transition-colors">Hapus</button>
                                         </form>
                                     </div>
                                 </div>
@@ -326,11 +350,11 @@ $title = "Profil Saya - Recloth";
     </main>
 
     <!-- Modal Tambah Alamat -->
-    <div id="addressModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-6 bg-[var(--primary)]/50 backdrop-blur-sm">
-        <div class="bg-[var(--white)] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div id="addressModal" class="hidden fixed inset-0 z-[60] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+        <div class="bg-[rgba(20,20,20,0.95)] border border-[rgba(255,255,255,0.1)] rounded-[32px] w-full max-w-lg p-8 shadow-2xl animate-in fade-in zoom-in duration-300">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">Tambah Alamat Baru</h3>
-                <button onclick="document.getElementById('addressModal').classList.add('hidden')" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <h3 class="text-2xl font-bold text-white">Tambah Alamat Baru</h3>
+                <button onclick="document.getElementById('addressModal').classList.add('hidden')" class="p-2 text-gray-400 hover:text-white hover:bg-[rgba(255,255,255,0.1)] rounded-full transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l18 18"></path>
                     </svg>
@@ -340,23 +364,23 @@ $title = "Profil Saya - Recloth";
                 <input type="hidden" name="action" value="add">
                 <div class="space-y-4">
                     <div class="space-y-1.5">
-                        <label class="block text-sm font-semibold text-gray-700">Label Alamat</label>
-                        <input type="text" name="label" placeholder="Rumah, Kantor, dll" class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm" required>
+                        <label class="block text-sm font-semibold text-gray-300">Label Alamat</label>
+                        <input type="text" name="label" placeholder="Rumah, Kantor, dll" class="form-input w-full rounded-xl px-4 py-3.5 text-sm outline-none" required>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="block text-sm font-semibold text-gray-700">Alamat Lengkap</label>
-                        <textarea name="address" rows="4" placeholder="Jl. Contoh No. 123..." class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm resize-none" required></textarea>
+                        <label class="block text-sm font-semibold text-gray-300">Alamat Lengkap</label>
+                        <textarea name="address" rows="4" placeholder="Jl. Contoh No. 123..." class="form-input w-full rounded-xl px-4 py-3.5 text-sm resize-none outline-none" required></textarea>
                     </div>
                     <div class="space-y-1.5">
-                        <label class="block text-sm font-semibold text-gray-700">Kode Pos</label>
-                        <input type="text" name="zip_code" placeholder="Contoh: 12345" pattern="[0-9]*" inputmode="numeric" maxlength="10" class="form-input w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm" required>
+                        <label class="block text-sm font-semibold text-gray-300">Kode Pos</label>
+                        <input type="text" name="zip_code" placeholder="Contoh: 12345" pattern="[0-9]*" inputmode="numeric" maxlength="10" class="form-input w-full rounded-xl px-4 py-3.5 text-sm outline-none" required>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 rounded border-gray-300">
-                        <label for="is_default" class="text-sm font-medium text-gray-600">Jadikan alamat utama</label>
+                    <div class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="is_default" id="is_default" class="w-4 h-4 rounded border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.05)] text-[var(--accent)] focus:ring-[var(--accent)] accent-[var(--accent)]">
+                        <label for="is_default" class="text-sm font-medium text-[var(--muted)] cursor-pointer">Jadikan alamat utama</label>
                     </div>
                 </div>
-                <button type="submit" class="w-full bg-[var(--primary)] text-white py-4 rounded-xl font-bold text-sm shadow-xl hover:translate-y-[-2px] transition-all">
+                <button type="submit" class="btn-update w-full py-4 rounded-xl font-bold text-sm shadow-[0_4px_15px_rgba(212,175,55,0.3)] transition-all">
                     Simpan Alamat
                 </button>
             </form>
@@ -364,7 +388,7 @@ $title = "Profil Saya - Recloth";
     </div>
 
 
-    <footer class="max-w-4xl mx-auto px-6 py-12 text-center text-gray-400 text-sm">
+    <footer class="max-w-4xl mx-auto px-6 py-12 text-center text-gray-500 text-sm relative z-10">
         <p>&copy; <?= date('Y') ?> Recloth. Semua hak dilindungi.</p>
     </footer>
 

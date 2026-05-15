@@ -217,10 +217,10 @@ function productImage(string $url): string
             justify-content: center;
             text-decoration: none;
             color: var(--text);
-            background: #FFFFFF;
+            background: rgba(255,255,255,0.05);
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .cart-icon:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--primary); color: var(--primary); }
+        .cart-icon:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--accent); color: var(--accent); }
 
         .cart-icon svg {
             width: 19px;

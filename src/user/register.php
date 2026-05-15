@@ -23,16 +23,21 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
             font-style: normal;
         }
         :root {
-            --primary: #6a7f52;
-            --primary-hover: #526340;
-            --bg: #f3eddf;
-            --text: #2e3522;
-            --muted: #6b735c;
-            --line: #cbd5bb;
-            --white: #bac6a9;
-            --black: #36442c;
-            --success: #1ea672;
-            --danger: #d24e4e;
+            --primary: #2d5a40;
+            --primary-hover: #1b4332;
+            --primary-glow: rgba(45, 90, 64, 0.5);
+            --accent: #D4AF37;
+            --accent-glow: rgba(212, 175, 55, 0.4);
+            --bg: #070707;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text: #FFFFFF;
+            --muted: #A1A1AA;
+            --line: rgba(255, 255, 255, 0.1);
+            --white: rgba(20, 20, 20, 0.4);
+            --black: #FFFFFF;
+            --success: #10b981;
+            --danger: #ef4444;
             --radius: 18px;
         }
 
@@ -44,10 +49,25 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
 
         body {
             background-color: var(--bg);
-            color: var(--black);
+            color: var(--text);
             font-family: "Inter", sans-serif;
             -webkit-font-smoothing: antialiased;
         }
+        
+        body::before {
+            content: ''; position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw;
+            background: radial-gradient(circle, var(--primary-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(80px);
+            animation: floatGlow1 20s ease-in-out infinite alternate;
+        }
+        body::after {
+            content: ''; position: fixed; bottom: -10%; right: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+            border-radius: 50%; z-index: -1; pointer-events: none; filter: blur(100px);
+            animation: floatGlow2 25s ease-in-out infinite alternate-reverse;
+        }
+        @keyframes floatGlow1 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(100px, 100px) scale(1.2); } }
+        @keyframes floatGlow2 { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(-100px, -100px) scale(1.3); } }
 
         .brand-font {
             font-family: "Symphony";
@@ -73,13 +93,15 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
         /* Form Inputs */
         .form-input {
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background-color: #FAFAFA;
+            background-color: rgba(255,255,255,0.05);
+            color: #FFFFFF;
+            border-color: rgba(255,255,255,0.1);
         }
 
         .form-input:focus {
-            border-color: var(--black);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            background-color: var(--white);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(212,175,55,0.15);
+            background-color: rgba(255,255,255,0.1);
             transform: translateY(-1px);
         }
 
@@ -150,7 +172,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
 </head>
 <body class="min-h-screen flex items-center justify-center p-4 md:p-6 lg:p-8">
     
-    <div class="w-full max-w-6xl bg-[var(--white)] rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row min-h-[650px] lg:min-h-[750px]">
+    <div class="w-full max-w-6xl bg-[var(--white)] backdrop-blur-2xl border border-[var(--glass-border)] rounded-3xl overflow-hidden shadow-2xl flex flex-col lg:flex-row min-h-[650px] lg:min-h-[750px]">
         
         <!-- Left Side: Hero Image -->
         <div class="hero-section lg:w-5/12 hidden lg:flex flex-col justify-between relative text-white p-12">
@@ -191,9 +213,9 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
         </div>
 
         <!-- Right Side: Form -->
-        <div class="lg:w-7/12 flex flex-col justify-center items-center p-8 sm:p-12 md:p-16 relative bg-[var(--white)]">
+        <div class="lg:w-7/12 flex flex-col justify-center items-center p-8 sm:p-12 md:p-16 relative">
             <!-- Mobile back button -->
-            <a href="../../index.php" class="lg:hidden absolute top-6 left-6 inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-black transition-colors">
+            <a href="../../index.php" class="lg:hidden absolute top-6 left-6 inline-flex items-center gap-2 text-sm font-medium text-gray-400 hover:text-[var(--accent)] transition-colors">
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                 </svg>
@@ -202,26 +224,26 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
 
             <div class="w-full max-w-md">
                 <div class="text-center lg:text-left mb-8 mt-8 lg:mt-0">
-                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-gray-900 mb-3">Buat Akun Baru</h2>
-                    <p class="text-gray-500 font-medium">Lengkapi data di bawah ini untuk bergabung dengan Recloth.</p>
+                    <h2 class="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-3">Buat Akun Baru</h2>
+                    <p class="text-[var(--muted)] font-medium">Lengkapi data di bawah ini untuk bergabung dengan Recloth.</p>
                 </div>
 
-                <div id="errorMessage" class="hidden mb-6 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm font-medium text-red-600 flex items-center gap-2">
+                <div id="errorMessage" class="hidden mb-6 rounded-xl bg-[rgba(239,68,68,0.1)] border border-[rgba(239,68,68,0.2)] px-4 py-3 text-sm font-medium text-red-400 flex items-center gap-2">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span></span>
                 </div>
                 
-                <div id="successMessage" class="hidden mb-6 rounded-xl bg-green-50 border border-green-200 px-4 py-3 text-sm font-medium text-green-600 flex items-center gap-2">
+                <div id="successMessage" class="hidden mb-6 rounded-xl bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)] px-4 py-3 text-sm font-medium text-emerald-400 flex items-center gap-2">
                     <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span></span>
                 </div>
 
                 <form id="registerForm" method="POST" action="../config/register_process.php" class="space-y-5">
                     <div class="space-y-1.5">
-                        <label for="name" class="block text-sm font-semibold text-gray-700">Nama Lengkap</label>
+                        <label for="name" class="block text-sm font-semibold text-gray-300">Nama Lengkap</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                                 </svg>
                             </div>
@@ -230,17 +252,17 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                                 id="name"
                                 name="name"
                                 placeholder="Nama sesuai identitas"
-                                class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none"
+                                class="form-input w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none"
                                 required
                             >
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label for="email" class="block text-sm font-semibold text-gray-700">Email</label>
+                        <label for="email" class="block text-sm font-semibold text-gray-300">Email</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
                                 </svg>
                             </div>
@@ -249,17 +271,17 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                                 id="email"
                                 name="email"
                                 placeholder="name@example.com"
-                                class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none"
+                                class="form-input w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none"
                                 required
                             >
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label for="address" class="block text-sm font-semibold text-gray-700">Alamat Lengkap</label>
+                        <label for="address" class="block text-sm font-semibold text-gray-300">Alamat Lengkap</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 pt-3 pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 </svg>
@@ -269,17 +291,17 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                                 name="address"
                                 rows="3"
                                 placeholder="Masukkan alamat lengkap pengiriman"
-                                class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none resize-none"
+                                class="form-input w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none resize-none"
                                 required
                             ></textarea>
                         </div>
                     </div>
 
                     <div class="space-y-1.5">
-                        <label for="zip_code" class="block text-sm font-semibold text-gray-700">Kode Pos</label>
+                        <label for="zip_code" class="block text-sm font-semibold text-gray-300">Kode Pos</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                                 </svg>
                             </div>
@@ -291,7 +313,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                                 pattern="[0-9]*"
                                 inputmode="numeric"
                                 maxlength="10"
-                                class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none"
+                                class="form-input w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none"
                                 required
                             >
                         </div>
@@ -299,10 +321,10 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div class="space-y-1.5">
-                            <label for="password" class="block text-sm font-semibold text-gray-700">Password</label>
+                            <label for="password" class="block text-sm font-semibold text-gray-300">Password</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                                     </svg>
                                 </div>
@@ -311,17 +333,17 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                                     id="password"
                                     name="password"
                                     placeholder="Minimal 8 karakter"
-                                    class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none"
+                                    class="form-input w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none"
                                     required
                                 >
                             </div>
                         </div>
 
                         <div class="space-y-1.5">
-                            <label for="password_confirm" class="block text-sm font-semibold text-gray-700">Ulangi Password</label>
+                            <label for="password_confirm" class="block text-sm font-semibold text-gray-300">Ulangi Password</label>
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                    <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
                                     </svg>
                                 </div>
@@ -330,7 +352,7 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                                     id="password_confirm"
                                     name="password_confirm"
                                     placeholder="Konfirmasi"
-                                    class="form-input w-full rounded-xl border border-gray-200 pl-11 pr-4 py-3 text-sm text-gray-900 outline-none"
+                                    class="form-input w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.05)] pl-11 pr-4 py-3 text-sm text-white placeholder-gray-500 outline-none"
                                     required
                                 >
                             </div>
@@ -338,17 +360,17 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                     </div>
 
                     <div class="pt-2">
-                        <label class="flex items-start gap-3">
+                        <label class="flex items-start gap-3 cursor-pointer">
                             <div class="pt-0.5">
-                                <input type="checkbox" id="terms" class="w-4 h-4 rounded border-gray-300 text-black focus:ring-black accent-black">
+                                <input type="checkbox" id="terms" class="w-4 h-4 rounded border-[rgba(255,255,255,0.2)] bg-[rgba(255,255,255,0.05)] text-[var(--accent)] focus:ring-[var(--accent)] accent-[var(--accent)]">
                             </div>
-                            <span class="text-sm text-gray-500 leading-relaxed">
-                                Dengan mendaftar, saya menyetujui <a href="terms.php" target="_blank" class="font-semibold text-black hover:underline">Syarat & Ketentuan</a> serta <a href="privacy.php" target="_blank" class="font-semibold text-black hover:underline">Kebijakan Privasi</a> yang berlaku.
+                            <span class="text-sm text-[var(--muted)] leading-relaxed">
+                                Dengan mendaftar, saya menyetujui <a href="terms.php" target="_blank" class="font-semibold text-[var(--accent)] hover:underline">Syarat & Ketentuan</a> serta <a href="privacy.php" target="_blank" class="font-semibold text-[var(--accent)] hover:underline">Kebijakan Privasi</a> yang berlaku.
                             </span>
                         </label>
                     </div>
 
-                    <button type="submit" class="btn-register w-full rounded-xl py-3.5 text-sm font-bold text-white shadow-lg mt-6 flex justify-center items-center gap-2 group">
+                    <button type="submit" class="btn-register w-full rounded-xl py-3.5 text-sm font-bold text-[#111] shadow-[0_4px_15px_rgba(212,175,55,0.3)] mt-6 flex justify-center items-center gap-2 group hover:shadow-[0_8px_25px_rgba(212,175,55,0.5)] bg-gradient-to-r from-[var(--accent)] to-[#fef08a] border-none">
                         <span>Daftar Sekarang</span>
                         <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
@@ -356,12 +378,12 @@ if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin') {
                     </button>
                 </form>
 
-                <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-4">
-                    <p class="text-center text-sm font-medium text-gray-500">
+                <div class="mt-8 pt-6 border-t border-[rgba(255,255,255,0.1)] flex flex-col gap-4">
+                    <p class="text-center text-sm font-medium text-[var(--muted)]">
                         Sudah punya akun?
-                        <a href="login.php" class="font-bold text-black hover-underline ml-1">Masuk di sini</a>
+                        <a href="login.php" class="font-bold text-[var(--accent)] hover-underline ml-1">Masuk di sini</a>
                     </p>
-                    <a href="../../index.php" class="w-full text-center text-sm font-semibold text-gray-600 hover:text-black py-3 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors flex items-center justify-center gap-2">
+                    <a href="../../index.php" class="w-full text-center text-sm font-semibold text-gray-300 hover:text-[var(--accent)] py-3 rounded-xl border border-[rgba(255,255,255,0.1)] hover:bg-[rgba(255,255,255,0.05)] transition-colors flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                         Kembali ke Beranda
                     </a>
